@@ -6,7 +6,7 @@ struct Step2View: View {
     var body: some View {
         ScrollView {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))]) {
-                ForEach(Array(viewModel.mergedImages.enumerated()), id: \._0) { idx, img in
+                ForEach(Array(viewModel.mergedImages.enumerated()), id: \.offset) { idx, img in
                     Image(nsImage: img)
                         .resizable()
                         .scaledToFit()

@@ -5,7 +5,7 @@ struct StepIndicator: View {
 
     var body: some View {
         HStack {
-            ForEach(Step.allCases, id: \._self) { step in
+            ForEach(Step.allCases, id: \.self) { step in
                 Text(step.title)
                     .fontWeight(step == current ? .bold : .regular)
                     .padding(.horizontal)
