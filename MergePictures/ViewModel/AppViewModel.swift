@@ -16,6 +16,7 @@ class AppViewModel: ObservableObject {
     @Published var isExporting: Bool = false
     @Published var exportProgress: Double = 0
 
+
     func addImages(urls: [URL]) {
         let newImages = urls.compactMap { NSImage(contentsOf: $0) }
         images.append(contentsOf: newImages)

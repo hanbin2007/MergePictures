@@ -4,6 +4,7 @@ struct Step2View: View {
     @ObservedObject var viewModel: AppViewModel
 
     var body: some View {
+
         VStack {
             if viewModel.isMerging {
                 ProgressView(value: viewModel.mergeProgress)
