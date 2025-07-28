@@ -80,16 +80,40 @@ class AppViewModel: ObservableObject {
     }
 
     func compress(image: NSImage, maxSizeKB: Int) -> (Data, String)? {
-        guard let tiff = image.tiffRepresentation,
-              let rep = NSBitmapImageRep(data: tiff) else {
+        guard var tiff = image.tiffRepresentation,
+              var rep = NSBitmapImageRep(data: tiff) else {
             return nil
         }
+
         var quality: CGFloat = 1.0
+        let limit = maxSizeKB * 1024
         var data = rep.representation(using: .jpeg, properties: [.compressionFactor: quality])
-        while let d = data, d.count > maxSizeKB * 1024, quality > 0.1 {
-            quality -= 0.1
+
+        var currentImage = image
+
+        while let d = data, d.count >= limit {
+            if quality > 0.05 {
+                quality -= 0.05
+            } else {
+                // scale down when quality is too low but size is still big
+                let ratio: CGFloat = 0.9
+                let newSize = NSSize(width: currentImage.size.width * ratio, height: currentImage.size.height * ratio)
+                let scaled = NSImage(size: newSize)
+                scaled.lockFocus()
+                NSGraphicsContext.current?.imageInterpolation = .high
+                currentImage.draw(in: NSRect(origin: .zero, size: newSize))
+                scaled.unlockFocus()
+                currentImage = scaled
+                guard let newTiff = currentImage.tiffRepresentation,
+                      let newRep = NSBitmapImageRep(data: newTiff) else {
+                    break
+                }
+                rep = newRep
+                quality = 1.0
+            }
             data = rep.representation(using: .jpeg, properties: [.compressionFactor: quality])
         }
+
         if let d = data {
             return (d, "jpg")
         }
