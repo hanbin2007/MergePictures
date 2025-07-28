@@ -79,17 +79,49 @@ class AppViewModel: ObservableObject {
         return result
     }
 
-    func compress(image: NSImage, maxSizeKB: Int) -> Data? {
-        guard let tiff = image.tiffRepresentation, let rep = NSBitmapImageRep(data: tiff) else {
+    func compress(image: NSImage, maxSizeKB: Int) -> (Data, String)? {
+        guard var tiff = image.tiffRepresentation,
+              var rep = NSBitmapImageRep(data: tiff) else {
             return nil
         }
+
         var quality: CGFloat = 1.0
+        let minQuality: CGFloat = 0.05
+        let limit = maxSizeKB * 1024
         var data = rep.representation(using: .jpeg, properties: [.compressionFactor: quality])
-        while let d = data, d.count > maxSizeKB * 1024, quality > 0.1 {
-            quality -= 0.1
+
+        var currentImage = image
+
+        while let d = data, d.count >= limit {
+            if quality > minQuality {
+                quality = max(minQuality, quality - 0.05)
+            } else {
+                // quality already minimal, start reducing resolution gradually
+                let ratio: CGFloat = 0.95
+                let newSize = NSSize(width: currentImage.size.width * ratio,
+                                     height: currentImage.size.height * ratio)
+                if newSize.width < 1 || newSize.height < 1 {
+                    break
+                }
+                let scaled = NSImage(size: newSize)
+                scaled.lockFocus()
+                NSGraphicsContext.current?.imageInterpolation = .high
+                currentImage.draw(in: NSRect(origin: .zero, size: newSize))
+                scaled.unlockFocus()
+                currentImage = scaled
+                guard let newTiff = currentImage.tiffRepresentation,
+                      let newRep = NSBitmapImageRep(data: newTiff) else {
+                    break
+                }
+                rep = newRep
+            }
             data = rep.representation(using: .jpeg, properties: [.compressionFactor: quality])
         }
-        return data
+
+        if let d = data {
+            return (d, "jpg")
+        }
+        return nil
     }
 
     func exportAll(to directory: URL) {
@@ -98,8 +130,17 @@ class AppViewModel: ObservableObject {
         exportProgress = 0
         DispatchQueue.global(qos: .userInitiated).async {
             for (idx, img) in self.mergedImages.enumerated() {
-                let data = self.compress(image: img, maxSizeKB: self.maxFileSizeKB) ?? img.tiffRepresentation!
-                let url = directory.appendingPathComponent("merged_\(idx).jpg")
+                let result = self.compress(image: img, maxSizeKB: self.maxFileSizeKB)
+                let data: Data
+                let ext: String
+                if let res = result {
+                    data = res.0
+                    ext = res.1
+                } else {
+                    data = img.tiffRepresentation!
+                    ext = "tiff"
+                }
+                let url = directory.appendingPathComponent("merged_\(idx).\(ext)")
                 try? data.write(to: url)
                 DispatchQueue.main.async {
                     self.exportProgress = Double(idx + 1) / Double(self.mergedImages.count)
