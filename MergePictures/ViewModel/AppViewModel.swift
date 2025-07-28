@@ -11,6 +11,11 @@ class AppViewModel: ObservableObject {
     @Published var mergedImages: [NSImage] = []
     @Published var previewImage: NSImage?
     @Published var maxFileSizeKB: Int = 1024
+    @Published var isMerging: Bool = false
+    @Published var mergeProgress: Double = 0
+    @Published var isExporting: Bool = false
+    @Published var exportProgress: Double = 0
+
 
     func addImages(urls: [URL]) {
         let newImages = urls.compactMap { NSImage(contentsOf: $0) }
@@ -24,13 +29,27 @@ class AppViewModel: ObservableObject {
 
     func batchMerge() {
         mergedImages = []
-        var index = 0
-        while index < images.count {
-            let slice = Array(images[index..<min(index+mergeCount, images.count)])
-            if let merged = merge(images: slice, direction: direction) {
-                mergedImages.append(merged)
+        isMerging = true
+        mergeProgress = 0
+        DispatchQueue.global(qos: .userInitiated).async {
+            var index = 0
+            var results: [NSImage] = []
+            while index < self.images.count {
+                let end = min(index + self.mergeCount, self.images.count)
+                let slice = Array(self.images[index..<end])
+                if let merged = self.merge(images: slice, direction: self.direction) {
+                    results.append(merged)
+                }
+                index += self.mergeCount
+                DispatchQueue.main.async {
+                    self.mergeProgress = Double(index) / Double(self.images.count)
+                }
             }
-            index += mergeCount
+            DispatchQueue.main.async {
+                self.mergedImages = results
+                self.isMerging = false
+                self.mergeProgress = 1.0
+            }
         }
     }
 
@@ -71,5 +90,24 @@ class AppViewModel: ObservableObject {
             data = rep.representation(using: .jpeg, properties: [.compressionFactor: quality])
         }
         return data
+    }
+
+    func exportAll(to directory: URL) {
+        guard !mergedImages.isEmpty else { return }
+        isExporting = true
+        exportProgress = 0
+        DispatchQueue.global(qos: .userInitiated).async {
+            for (idx, img) in self.mergedImages.enumerated() {
+                let data = self.compress(image: img, maxSizeKB: self.maxFileSizeKB) ?? img.tiffRepresentation!
+                let url = directory.appendingPathComponent("merged_\(idx).jpg")
+                try? data.write(to: url)
+                DispatchQueue.main.async {
+                    self.exportProgress = Double(idx + 1) / Double(self.mergedImages.count)
+                }
+            }
+            DispatchQueue.main.async {
+                self.isExporting = false
+            }
+        }
     }
 }

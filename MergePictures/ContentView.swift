@@ -16,6 +16,7 @@ struct ContentView: View {
                             viewModel.step = prev
                         }
                     }
+                    .disabled(viewModel.isExporting)
                 }
                 Spacer()
                 if viewModel.step != .export {
@@ -24,6 +25,7 @@ struct ContentView: View {
                             viewModel.step = next
                         }
                     }
+                    .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                 }
             }.padding(.top)
         }
