@@ -86,18 +86,23 @@ class AppViewModel: ObservableObject {
         }
 
         var quality: CGFloat = 1.0
+        let minQuality: CGFloat = 0.05
         let limit = maxSizeKB * 1024
         var data = rep.representation(using: .jpeg, properties: [.compressionFactor: quality])
 
         var currentImage = image
 
         while let d = data, d.count >= limit {
-            if quality > 0.05 {
-                quality -= 0.05
+            if quality > minQuality {
+                quality = max(minQuality, quality - 0.05)
             } else {
-                // scale down when quality is too low but size is still big
-                let ratio: CGFloat = 0.9
-                let newSize = NSSize(width: currentImage.size.width * ratio, height: currentImage.size.height * ratio)
+                // quality already minimal, start reducing resolution gradually
+                let ratio: CGFloat = 0.95
+                let newSize = NSSize(width: currentImage.size.width * ratio,
+                                     height: currentImage.size.height * ratio)
+                if newSize.width < 1 || newSize.height < 1 {
+                    break
+                }
                 let scaled = NSImage(size: newSize)
                 scaled.lockFocus()
                 NSGraphicsContext.current?.imageInterpolation = .high
@@ -109,7 +114,6 @@ class AppViewModel: ObservableObject {
                     break
                 }
                 rep = newRep
-                quality = 1.0
             }
             data = rep.representation(using: .jpeg, properties: [.compressionFactor: quality])
         }
