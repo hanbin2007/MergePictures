@@ -9,14 +9,12 @@ struct Step1View: View {
             HStack {
                 Button("Add Images") { showImporter = true }
                 Stepper("Merge count: \(viewModel.mergeCount)", value: $viewModel.mergeCount, in: 1...10)
-                    .onChange(of: viewModel.mergeCount) { _, _ in viewModel.updatePreview() }
                 Picker("Direction", selection: $viewModel.direction) {
                     ForEach(MergeDirection.allCases) { dir in
                         Text(dir.rawValue.capitalized).tag(dir)
                     }
                 }
                 .pickerStyle(SegmentedPickerStyle())
-                .onChange(of: viewModel.direction) { _, _ in viewModel.updatePreview() }
                 Spacer()
                 Text("Selected: \(viewModel.images.count)")
             }

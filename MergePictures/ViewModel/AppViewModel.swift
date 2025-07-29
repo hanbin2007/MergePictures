@@ -3,10 +3,26 @@ import Combine
 
 class AppViewModel: ObservableObject {
     @Published var step: Step = .selectImages
-    @Published var mergeCount: Int = 2
-    @Published var direction: MergeDirection = .vertical
+
+    @Published var mergeCount: Int = 2 {
+        didSet {
+            mergedImages = []
+            updatePreview()
+        }
+    }
+
+    @Published var direction: MergeDirection = .vertical {
+        didSet {
+            mergedImages = []
+            updatePreview()
+        }
+    }
+
     @Published var images: [NSImage] = [] {
-        didSet { updatePreview() }
+        didSet {
+            mergedImages = []
+            updatePreview()
+        }
     }
     @Published var mergedImages: [NSImage] = []
     @Published var previewImage: NSImage?
