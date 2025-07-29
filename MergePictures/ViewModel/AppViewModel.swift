@@ -167,4 +167,17 @@ class AppViewModel: ObservableObject {
             }
         }
     }
+    
 }
+
+#if DEBUG
+extension AppViewModel {
+    static var preview: AppViewModel {
+        let vm = AppViewModel()
+        vm.images = (1...3).compactMap { NSImage(named: "Placeholder\($0)") }
+        vm.updatePreview()
+        vm.batchMerge()
+        return vm
+    }
+}
+#endif

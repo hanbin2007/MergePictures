@@ -1,8 +1,11 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var viewModel = AppViewModel()
+    @StateObject private var viewModel: AppViewModel
 
+    init(viewModel: AppViewModel = AppViewModel()) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
     var body: some View {
         VStack(spacing: 10) {
             StepIndicator(current: $viewModel.step)
@@ -53,5 +56,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(viewModel: .preview)
 }

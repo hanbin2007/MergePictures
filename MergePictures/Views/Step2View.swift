@@ -2,7 +2,11 @@ import SwiftUI
 
 struct Step2View: View {
     @ObservedObject var viewModel: AppViewModel
+    @State private var scale: CGFloat = 1.0
 
+    private var gridLayout: [GridItem] {
+        [GridItem(.adaptive(minimum: 150 * scale))]
+    }
     var body: some View {
 
         VStack {
@@ -10,15 +14,20 @@ struct Step2View: View {
                 ProgressView(value: viewModel.mergeProgress)
                     .padding(.vertical)
             }
+            HStack {
+                Spacer()
+                Slider(value: $scale, in: 0.5...2)
+                    .frame(width: 150)
+            }
             ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))]) {
+                LazyVGrid(columns: gridLayout) {
                     ForEach(Array(viewModel.mergedImages.enumerated()), id: \.offset) { pair in
                         let idx = pair.offset
                         let img = pair.element
                         Image(nsImage: img)
                             .resizable()
                             .scaledToFit()
-                            .frame(height: 150)
+                            .frame(height: 150 * scale)
                             .overlay(
                                 Text("\(idx + 1)")
                                     .foregroundColor(.white)
@@ -26,7 +35,7 @@ struct Step2View: View {
                                 alignment: .bottomTrailing
                             )
                     }
-                }
+                }.animation(.default, value: scale)
             }
         }
         .onAppear {
@@ -35,4 +44,8 @@ struct Step2View: View {
             }
         }
     }
+}
+
+#Preview {
+    Step2View(viewModel: .preview)
 }

@@ -31,3 +31,6 @@ struct Step3View: View {
         }
     }
 }
+#Preview {
+    Step3View(viewModel: .preview)
+}

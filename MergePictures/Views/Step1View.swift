@@ -18,19 +18,24 @@ struct Step1View: View {
                 Spacer()
                 Text("Selected: \(viewModel.images.count)")
             }
-            Group {
-                if let img = viewModel.previewImage {
-                    Image(nsImage: img)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    Text("No Preview")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+            GeometryReader { proxy in
+                Group {
+                    if let img = viewModel.previewImage {
+                        let containerWidth = proxy.size.width
+                        let minWidth = containerWidth * 0.5
+                        let targetWidth = max(minWidth, min(containerWidth, img.size.width))
+                        let targetHeight = targetWidth * (img.size.height / img.size.width)
+                        Image(nsImage: img)
+                            .resizable()
+                            .frame(width: targetWidth, height: targetHeight)
+                    } else {
+                        Text("No Preview")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
             .frame(minHeight: 200)
-            .frame(maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.bottom)
@@ -40,4 +45,8 @@ struct Step1View: View {
             }
         }
     }
+}
+
+#Preview {
+    Step1View(viewModel: .preview)
 }
