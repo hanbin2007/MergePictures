@@ -96,7 +96,7 @@ class AppViewModel: ObservableObject {
     }
 
     func compress(image: NSImage, maxSizeKB: Int) -> (Data, String)? {
-        guard var tiff = image.tiffRepresentation,
+        guard let tiff = image.tiffRepresentation,
               var rep = NSBitmapImageRep(data: tiff) else {
             return nil
         }
