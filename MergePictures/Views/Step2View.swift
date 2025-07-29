@@ -46,6 +46,8 @@ struct Step2View: View {
     }
 }
 
+#if DEBUG
 #Preview {
     Step2View(viewModel: .preview)
 }
+#endif

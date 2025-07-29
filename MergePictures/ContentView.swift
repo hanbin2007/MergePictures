@@ -55,6 +55,8 @@ struct ContentView: View {
     }
 }
 
+#if DEBUG
 #Preview {
     ContentView(viewModel: .preview)
 }
+#endif

@@ -31,6 +31,9 @@ struct Step3View: View {
         }
     }
 }
+
+#if DEBUG
 #Preview {
     Step3View(viewModel: .preview)
 }
+#endif
