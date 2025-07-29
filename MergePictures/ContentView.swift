@@ -4,11 +4,16 @@ struct ContentView: View {
     @StateObject private var viewModel = AppViewModel()
 
     var body: some View {
-        VStack {
+        VStack(spacing: 10) {
             StepIndicator(current: $viewModel.step)
             Divider()
-            content
-            Spacer()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    content
+                    
+                }
+                .frame(maxWidth: .infinity, alignment: .top)
+            }
             HStack {
                 if viewModel.step != .selectImages {
                     Button("Back") {
@@ -27,7 +32,8 @@ struct ContentView: View {
                     }
                     .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                 }
-            }.padding(.top)
+            }
+            .padding(.top)
         }
         .padding()
         .frame(minWidth: 600, minHeight: 400)
