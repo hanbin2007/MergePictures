@@ -12,10 +12,6 @@ struct Step2View: View {
                 ProgressView(value: viewModel.mergeProgress)
                     .padding(.vertical)
             }
-            HStack {
-                Spacer()
-                PreviewScaleSlider(scale: $viewModel.step2PreviewScale)
-            }
             ScrollView {
                 if viewModel.mergedImages.isEmpty {
                     reloadPrompt
