@@ -21,13 +21,23 @@ struct Step1View: View {
             GeometryReader { proxy in
                 Group {
                     if let img = viewModel.previewImage {
-                        let containerWidth = proxy.size.width
-                        let minWidth = containerWidth * 0.5
-                        let targetWidth = max(minWidth, min(containerWidth, img.size.width))
-                        let targetHeight = targetWidth * (img.size.height / img.size.width)
+                        let containerW = proxy.size.width
+                        let containerH = proxy.size.height
+                        let aspect = img.size.width / img.size.height
+
+                        var targetH = min(img.size.height, containerH)
+                        var targetW = targetH * aspect
+
+                        let minW = min(img.size.width, containerW * 0.5)
+                        if targetW < minW {
+                            targetW = minW
+                            targetH = targetW / aspect
+                        }
+
                         Image(nsImage: img)
                             .resizable()
-                            .frame(width: targetWidth, height: targetHeight)
+                            .scaledToFit()
+                            .frame(width: targetW, height: targetH)
                     } else {
                         Text("No Preview")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
