@@ -43,7 +43,7 @@ struct Step1View: View {
     }
 
     private func previewImage(for image: NSImage, in proxy: GeometryProxy) -> some View {
-        var heightScale = min(proxy.size.height / image.size.height, 1)
+        let heightScale = min(proxy.size.height / image.size.height, 1)
         var width = image.size.width * heightScale
         var frameHeight: CGFloat? = image.size.height * heightScale
         if width < proxy.size.width * 0.5 {
