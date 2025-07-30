@@ -43,8 +43,29 @@ struct ContentView: View {
             }
             .frame(minWidth: 600)
             .padding()
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                        Slider(value: previewScaleBinding, in: 0.5...2.0)
+                    }
+                    .frame(width: 150)
+                    .tint(.accentColor)
+                }
+            }
         }
         .frame(minWidth: 850, minHeight: 400)
+    }
+
+    private var previewScaleBinding: Binding<CGFloat> {
+        switch viewModel.step {
+        case .selectImages:
+            return $viewModel.step1PreviewScale
+        case .previewAll:
+            return $viewModel.step2PreviewScale
+        case .export:
+            return .constant(1.0)
+        }
     }
 
     @ViewBuilder
