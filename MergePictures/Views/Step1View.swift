@@ -15,7 +15,9 @@ struct Step1View: View {
             }
             .pickerStyle(SegmentedPickerStyle())
             Spacer()
+            Button("Swap Order") {}
             Text("Selected: \(viewModel.images.count)")
+            Spacer()
         }
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
