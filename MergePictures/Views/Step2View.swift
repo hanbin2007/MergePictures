@@ -2,6 +2,7 @@ import SwiftUI
 
 struct Step2View: View {
     @ObservedObject var viewModel: AppViewModel
+    @Environment(\.colorScheme) private var colorScheme
     private var gridLayout: [GridItem] {
         [GridItem(.adaptive(minimum: 150 * viewModel.step2PreviewScale))]
     }
@@ -25,12 +26,13 @@ struct Step2View: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(height: 150 * viewModel.step2PreviewScale)
-                                .overlay(
+                                .overlay(alignment: .bottomTrailing) {
                                     Text("\(idx + 1)")
-                                        .foregroundColor(.white)
-                                        .padding(4),
-                                    alignment: .bottomTrailing
-                                )
+                                        .fontWeight(.bold)
+                                        .foregroundColor(colorScheme == .dark ? .white : .black)
+                                        .shadow(color: colorScheme == .dark ? .black.opacity(0.8) : .white.opacity(0.8), radius: 1)
+                                        .padding(4)
+                                }
                         }
                     }
                     .animation(.default, value: viewModel.step2PreviewScale)

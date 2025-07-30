@@ -67,6 +67,7 @@ private struct SidebarRow: View {
             Spacer()
             Button(action: deleteAction) {
                 Image(systemName: "trash")
+                    .foregroundColor(.primary)
             }
             .buttonStyle(.borderless)
             .opacity(hoveredId == item.id ? 1 : 0)
