@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct ImageSidebarView: View {
     @ObservedObject var viewModel: AppViewModel
