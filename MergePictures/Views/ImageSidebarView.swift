@@ -71,7 +71,10 @@ private struct SidebarRow: View {
             .buttonStyle(.borderless)
             .opacity(hoveredId == item.id ? 1 : 0)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 2)
+        .padding(.horizontal, 4)
+        .listRowInsets(EdgeInsets())
         .onHover { hovering in
             hoveredId = hovering ? item.id : nil
         }

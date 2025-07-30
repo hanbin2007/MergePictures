@@ -40,6 +40,7 @@ class AppViewModel: ObservableObject {
             return ImageItem(url: url, image: img)
         }
         images.append(contentsOf: newItems)
+        sortImages()
     }
 
     /// Sorts images by filename using Finder-like logic respecting the current sort order.
