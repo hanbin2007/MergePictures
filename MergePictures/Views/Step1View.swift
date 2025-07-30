@@ -68,12 +68,13 @@ struct Step1View: View {
         return ScrollView {
 #if os(macOS)
             Image(nsImage: image)
-#else
-            Image(uiImage: image)
-#endif
                 .resizable()
                 .scaledToFit()
                 .frame(width: width, height: frameHeight)
+#else
+            Image(uiImage: image)
+#endif
+                
         }
     }
 }

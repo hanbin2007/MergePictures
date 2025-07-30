@@ -63,13 +63,14 @@ private struct SidebarRow: View {
         HStack(spacing: 8) {
             #if os(macOS)
             Image(nsImage: item.image)
-            #else
-            Image(uiImage: item.image)
-            #endif
                 .resizable()
                 .scaledToFit()
                 .frame(width: 40, height: 40)
                 .cornerRadius(4)
+            #else
+            Image(uiImage: item.image)
+            #endif
+                
             Text(item.url.lastPathComponent)
                 .lineLimit(1)
             Spacer()
