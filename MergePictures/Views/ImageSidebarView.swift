@@ -7,7 +7,7 @@ struct ImageSidebarView: View {
 
     var body: some View {
         List {
-            Section(header: SidebarHeader(sortAction: viewModel.sortImagesByName)) {
+            Section(header: SidebarHeader(ascending: viewModel.sortAscending, toggleAction: viewModel.toggleSortOrder)) {
                 ForEach(viewModel.images) { item in
                     SidebarRow(item: item,
                                hoveredId: $hoveredId,
@@ -34,16 +34,17 @@ struct ImageSidebarView: View {
 }
 
 private struct SidebarHeader: View {
-    var sortAction: () -> Void
+    var ascending: Bool
+    var toggleAction: () -> Void
 
     var body: some View {
-        HStack {
+        HStack(spacing: 4) {
             Text("Images")
-            Spacer()
-            Button(action: sortAction) {
-                Label("Sort", systemImage: "arrow.up.arrow.down")
+            Button(action: toggleAction) {
+                Image(systemName: ascending ? "arrow.up" : "arrow.down")
             }
             .buttonStyle(.borderless)
+            Spacer()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
