@@ -2,45 +2,63 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var viewModel: AppViewModel
+    @State private var sidebarWidth: CGFloat = 200
 
     init(viewModel: AppViewModel = AppViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
     var body: some View {
-        HStack(spacing: 0) {
-            ImageSidebarView(viewModel: viewModel)
-            Divider()
-            VStack(spacing: 10) {
-                StepIndicator(current: $viewModel.step)
+        GeometryReader { proxy in
+            HStack(spacing: 0) {
+                ImageSidebarView(viewModel: viewModel)
+                    .frame(width: sidebarWidth)
                 Divider()
-
-                VStack(alignment: .leading, spacing: 16) {
-                    content
-                }
-                .frame(maxWidth: .infinity, alignment: .top)
-
-                HStack {
-                    if viewModel.step != .selectImages {
-                        Button("Back") {
-                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                                viewModel.step = prev
+                    .background(Color.clear)
+                    .frame(width: 2)
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                let minWidth = max(150, proxy.size.width * 0.2)
+                                let maxWidth = proxy.size.width * 0.6
+                                let proposed = sidebarWidth + value.translation.width
+                                sidebarWidth = min(max(proposed, minWidth), maxWidth)
                             }
-                        }
-                        .disabled(viewModel.isExporting)
+                    )
+                    .onAppear {
+                        sidebarWidth = max(150, proxy.size.width / 3)
                     }
-                    Spacer()
-                    if viewModel.step != .export {
-                        Button("Next") {
-                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                                viewModel.step = next
+                VStack(spacing: 10) {
+                    StepIndicator(current: $viewModel.step)
+                    Divider()
+
+                    VStack(alignment: .leading, spacing: 16) {
+                        content
+                    }
+                    .frame(maxWidth: .infinity, alignment: .top)
+
+                    HStack {
+                        if viewModel.step != .selectImages {
+                            Button("Back") {
+                                if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                                    viewModel.step = prev
+                                }
                             }
+                            .disabled(viewModel.isExporting)
                         }
-                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                        Spacer()
+                        if viewModel.step != .export {
+                            Button("Next") {
+                                if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                                    viewModel.step = next
+                                }
+                            }
+                            .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                        }
                     }
+                    .padding(.top)
                 }
-                .padding(.top)
+                .padding()
             }
-            .padding()
         }
         .frame(minWidth: 600, minHeight: 400)
     }
