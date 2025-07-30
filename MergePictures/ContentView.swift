@@ -3,6 +3,31 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var viewModel: AppViewModel
 
+    private var currentPreviewScale: Binding<CGFloat> {
+        Binding(
+            get: {
+                switch viewModel.step {
+                case .selectImages:
+                    return viewModel.step1PreviewScale
+                case .previewAll:
+                    return viewModel.step2PreviewScale
+                default:
+                    return 1.0
+                }
+            },
+            set: { newValue in
+                switch viewModel.step {
+                case .selectImages:
+                    viewModel.step1PreviewScale = newValue
+                case .previewAll:
+                    viewModel.step2PreviewScale = newValue
+                default:
+                    break
+                }
+            }
+        )
+    }
+
     init(viewModel: AppViewModel = AppViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
@@ -37,6 +62,9 @@ struct ContentView: View {
                             }
                         }
                         .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                    }
+                    if viewModel.step == .selectImages || viewModel.step == .previewAll {
+                        PreviewScaleSlider(scale: currentPreviewScale)
                     }
                 }
                 .padding(.top)

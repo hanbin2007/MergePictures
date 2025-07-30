@@ -2,10 +2,8 @@ import SwiftUI
 
 struct Step2View: View {
     @ObservedObject var viewModel: AppViewModel
-    @State private var scale: CGFloat = 1.0
-
     private var gridLayout: [GridItem] {
-        [GridItem(.adaptive(minimum: 150 * scale))]
+        [GridItem(.adaptive(minimum: 150 * viewModel.step2PreviewScale))]
     }
     var body: some View {
 
@@ -13,11 +11,6 @@ struct Step2View: View {
             if viewModel.isMerging {
                 ProgressView(value: viewModel.mergeProgress)
                     .padding(.vertical)
-            }
-            HStack {
-                Spacer()
-                Slider(value: $scale, in: 0.8...3)
-                    .frame(width: 150)
             }
             ScrollView {
                 if viewModel.mergedImages.isEmpty {
@@ -31,7 +24,7 @@ struct Step2View: View {
                             Image(nsImage: img)
                                 .resizable()
                                 .scaledToFit()
-                                .frame(height: 150 * scale)
+                                .frame(height: 150 * viewModel.step2PreviewScale)
                                 .overlay(
                                     Text("\(idx + 1)")
                                         .foregroundColor(.white)
@@ -40,7 +33,7 @@ struct Step2View: View {
                                 )
                         }
                     }
-                    .animation(.default, value: scale)
+                    .animation(.default, value: viewModel.step2PreviewScale)
                 }
             }
         }
