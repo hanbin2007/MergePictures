@@ -15,7 +15,7 @@ struct Step1View: View {
             }
             .pickerStyle(SegmentedPickerStyle())
             Spacer()
-            Button("Swap Order") {}
+            Button("Swap Order") { viewModel.rotateImages() }
             Text("Selected: \(viewModel.images.count)")
             Spacer()
         }
