@@ -43,6 +43,16 @@ class AppViewModel: ObservableObject {
         sortImages()
     }
 
+    /// Cycles the image order by moving the first item to the end.
+    /// Clears any generated results and refreshes the preview.
+    func rotateImages() {
+        guard images.count > 1 else { return }
+        let first = images.removeFirst()
+        images.append(first)
+        mergedImages = []
+        updatePreview()
+    }
+
     /// Sorts images by filename using Finder-like logic respecting the current sort order.
     func sortImages() {
         images.sort { a, b in
