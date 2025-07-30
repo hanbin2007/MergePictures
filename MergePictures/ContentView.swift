@@ -9,7 +9,7 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             ImageSidebarView(viewModel: viewModel)
-                .frame(minWidth: 150, idealWidth: 200, maxWidth: 300)
+                .navigationSplitViewColumnWidth(min: 150, ideal: 200, max: 400)
         } detail: {
             VStack(spacing: 10) {
                 StepIndicator(current: $viewModel.step)
@@ -41,9 +41,10 @@ struct ContentView: View {
                 }
                 .padding(.top)
             }
+            .frame(minWidth: 600)
             .padding()
         }
-        .frame(minWidth: 600, minHeight: 400)
+        .frame(minWidth: 800, minHeight: 400)
     }
 
     @ViewBuilder

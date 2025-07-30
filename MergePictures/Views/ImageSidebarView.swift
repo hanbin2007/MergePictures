@@ -17,7 +17,7 @@ struct ImageSidebarView: View {
             }
         }
         .listStyle(.sidebar)
-        .frame(minWidth: 200, idealWidth: 220, maxWidth: 300)
+        .frame(minWidth: 200, idealWidth: 220, maxWidth: 400)
     }
 
     private func move(from source: IndexSet, to destination: Int) {
