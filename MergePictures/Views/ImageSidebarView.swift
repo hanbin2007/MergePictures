@@ -7,12 +7,14 @@ struct ImageSidebarView: View {
 
     var body: some View {
         List {
-            ForEach(viewModel.images) { item in
-                SidebarRow(item: item,
-                           hoveredId: $hoveredId,
-                           deleteAction: { delete(item) })
+            Section(header: SidebarHeader(ascending: viewModel.sortAscending, toggleAction: viewModel.toggleSortOrder)) {
+                ForEach(viewModel.images) { item in
+                    SidebarRow(item: item,
+                               hoveredId: $hoveredId,
+                               deleteAction: { delete(item) })
+                }
+                .onMove(perform: move)
             }
-            .onMove(perform: move)
         }
         .listStyle(.sidebar)
         .frame(minWidth: 200, idealWidth: 220, maxWidth: 300)
@@ -28,6 +30,23 @@ struct ImageSidebarView: View {
             viewModel.images.remove(at: idx)
             viewModel.updatePreview()
         }
+    }
+}
+
+private struct SidebarHeader: View {
+    var ascending: Bool
+    var toggleAction: () -> Void
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text("Images")
+            Button(action: toggleAction) {
+                Image(systemName: ascending ? "arrow.up" : "arrow.down")
+            }
+            .buttonStyle(.borderless)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -52,7 +71,10 @@ private struct SidebarRow: View {
             .buttonStyle(.borderless)
             .opacity(hoveredId == item.id ? 1 : 0)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 2)
+        .padding(.horizontal, 4)
+        .listRowInsets(EdgeInsets())
         .onHover { hovering in
             hoveredId = hovering ? item.id : nil
         }

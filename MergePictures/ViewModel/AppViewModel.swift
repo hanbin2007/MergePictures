@@ -31,6 +31,7 @@ class AppViewModel: ObservableObject {
     @Published var mergeProgress: Double = 0
     @Published var isExporting: Bool = false
     @Published var exportProgress: Double = 0
+    @Published var sortAscending: Bool = true
 
 
     func addImages(urls: [URL]) {
@@ -39,6 +40,21 @@ class AppViewModel: ObservableObject {
             return ImageItem(url: url, image: img)
         }
         images.append(contentsOf: newItems)
+        sortImages()
+    }
+
+    /// Sorts images by filename using Finder-like logic respecting the current sort order.
+    func sortImages() {
+        images.sort { a, b in
+            let result = a.url.lastPathComponent.localizedStandardCompare(b.url.lastPathComponent)
+            return sortAscending ? result == .orderedAscending : result == .orderedDescending
+        }
+    }
+
+    /// Toggles between ascending and descending order and resorts the image list.
+    func toggleSortOrder() {
+        sortAscending.toggle()
+        sortImages()
     }
 
     func updatePreview() {
