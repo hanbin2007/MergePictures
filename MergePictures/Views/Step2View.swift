@@ -16,7 +16,7 @@ struct Step2View: View {
             }
             HStack {
                 Spacer()
-                Slider(value: $scale, in: 0.5...2)
+                Slider(value: $scale, in: 0.8...3)
                     .frame(width: 150)
             }
             ScrollView {
@@ -58,6 +58,9 @@ struct Step2View: View {
                 .foregroundColor(.accentColor)
             Text("Preview is empty")
                 .font(.headline)
+            Text("Preview need to be regenerated after rearranging images")
+                .multilineTextAlignment(.center)
+            
             Button("Reload Preview") {
                 viewModel.batchMerge()
             }
@@ -68,6 +71,7 @@ struct Step2View: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.accentColor.opacity(0.1))
         )
+        .frame(width:280)
         .padding()
     }
 }

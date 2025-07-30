@@ -44,7 +44,7 @@ struct ContentView: View {
             .frame(minWidth: 600)
             .padding()
         }
-        .frame(minWidth: 800, minHeight: 400)
+        .frame(minWidth: 850, minHeight: 400)
     }
 
     @ViewBuilder
