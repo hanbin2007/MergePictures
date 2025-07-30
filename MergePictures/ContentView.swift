@@ -7,37 +7,41 @@ struct ContentView: View {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
     var body: some View {
-        VStack(spacing: 10) {
-            StepIndicator(current: $viewModel.step)
+        HStack(spacing: 0) {
+            ImageSidebarView(viewModel: viewModel)
             Divider()
+            VStack(spacing: 10) {
+                StepIndicator(current: $viewModel.step)
+                Divider()
 
-            VStack(alignment: .leading, spacing: 16) {
-                content
-            }
-            .frame(maxWidth: .infinity, alignment: .top)
-            
-            HStack {
-                if viewModel.step != .selectImages {
-                    Button("Back") {
-                        if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                            viewModel.step = prev
-                        }
-                    }
-                    .disabled(viewModel.isExporting)
+                VStack(alignment: .leading, spacing: 16) {
+                    content
                 }
-                Spacer()
-                if viewModel.step != .export {
-                    Button("Next") {
-                        if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                            viewModel.step = next
+                .frame(maxWidth: .infinity, alignment: .top)
+
+                HStack {
+                    if viewModel.step != .selectImages {
+                        Button("Back") {
+                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                                viewModel.step = prev
+                            }
                         }
+                        .disabled(viewModel.isExporting)
                     }
-                    .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                    Spacer()
+                    if viewModel.step != .export {
+                        Button("Next") {
+                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                                viewModel.step = next
+                            }
+                        }
+                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                    }
                 }
+                .padding(.top)
             }
-            .padding(.top)
+            .padding()
         }
-        .padding()
         .frame(minWidth: 600, minHeight: 400)
     }
 

@@ -18,7 +18,7 @@ class AppViewModel: ObservableObject {
         }
     }
 
-    @Published var images: [NSImage] = [] {
+    @Published var images: [ImageItem] = [] {
         didSet {
             mergedImages = []
             updatePreview()
@@ -34,12 +34,15 @@ class AppViewModel: ObservableObject {
 
 
     func addImages(urls: [URL]) {
-        let newImages = urls.compactMap { NSImage(contentsOf: $0) }
-        images.append(contentsOf: newImages)
+        let newItems = urls.compactMap { url -> ImageItem? in
+            guard let img = NSImage(contentsOf: url) else { return nil }
+            return ImageItem(url: url, image: img)
+        }
+        images.append(contentsOf: newItems)
     }
 
     func updatePreview() {
-        let previewSource = Array(images.prefix(mergeCount))
+        let previewSource = images.prefix(mergeCount).map { $0.image }
         previewImage = merge(images: previewSource, direction: direction)
     }
 
@@ -52,7 +55,7 @@ class AppViewModel: ObservableObject {
             var results: [NSImage] = []
             while index < self.images.count {
                 let end = min(index + self.mergeCount, self.images.count)
-                let slice = Array(self.images[index..<end])
+                let slice = self.images[index..<end].map { $0.image }
                 if let merged = self.merge(images: slice, direction: self.direction) {
                     results.append(merged)
                 }
@@ -174,7 +177,10 @@ class AppViewModel: ObservableObject {
 extension AppViewModel {
     static var preview: AppViewModel {
         let vm = AppViewModel()
-        vm.images = (1...3).compactMap { NSImage(named: "Placeholder\($0)") }
+        vm.images = (1...3).compactMap { idx in
+            guard let img = NSImage(named: "Placeholder\(idx)") else { return nil }
+            return ImageItem(url: URL(fileURLWithPath: "placeholder\(idx).png"), image: img)
+        }
         vm.updatePreview()
         vm.batchMerge()
         return vm
