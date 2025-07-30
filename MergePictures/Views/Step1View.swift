@@ -45,13 +45,21 @@ struct Step1View: View {
     }
 
     private func previewImage(for image: NSImage, in proxy: GeometryProxy) -> some View {
-        let baseScale = min(proxy.size.height / image.size.height, 1)
+        let baseScale: CGFloat
+        if viewModel.direction == .vertical {
+            baseScale = min(proxy.size.width / image.size.width, 1)
+        } else {
+            baseScale = min(proxy.size.height / image.size.height, 1)
+        }
+
         var width = image.size.width * baseScale * viewModel.step1PreviewScale
         var frameHeight: CGFloat? = image.size.height * baseScale * viewModel.step1PreviewScale
+
         if width < proxy.size.width * 0.5 {
             width = proxy.size.width * 0.5
             frameHeight = nil
         }
+
         return Image(nsImage: image)
             .resizable()
             .scaledToFit()
