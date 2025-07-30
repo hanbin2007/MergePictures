@@ -1,4 +1,9 @@
 import SwiftUI
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 struct Step1View: View {
     @ObservedObject var viewModel: AppViewModel
@@ -44,7 +49,7 @@ struct Step1View: View {
         }
     }
 
-    private func previewImage(for image: NSImage, in proxy: GeometryProxy) -> some View {
+    private func previewImage(for image: PlatformImage, in proxy: GeometryProxy) -> some View {
         let baseScale: CGFloat
         if viewModel.direction == .vertical {
             baseScale = min(proxy.size.width / image.size.width, 1)
@@ -61,7 +66,11 @@ struct Step1View: View {
         }
 
         return ScrollView {
+#if os(macOS)
             Image(nsImage: image)
+#else
+            Image(uiImage: image)
+#endif
                 .resizable()
                 .scaledToFit()
                 .frame(width: width, height: frameHeight)

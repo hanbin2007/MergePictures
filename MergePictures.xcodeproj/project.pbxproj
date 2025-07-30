@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		FD7595362E362B400048D3DA /* MergePictures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MergePictures.app; sourceTree = BUILT_PRODUCTS_DIR; };
+                FD7595362E362B400048D3DA /* MergePictures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MergePictures.app; sourceTree = BUILT_PRODUCTS_DIR; };
+                FDABAA012E362B410048D3DA /* MergePictures iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MergePictures iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -37,39 +38,62 @@
 			);
 			sourceTree = "<group>";
 		};
-		FD7595372E362B400048D3DA /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				FD7595362E362B400048D3DA /* MergePictures.app */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
+                FD7595372E362B400048D3DA /* Products */ = {
+                        isa = PBXGroup;
+                        children = (
+                                FD7595362E362B400048D3DA /* MergePictures.app */,
+                                FDABAA012E362B410048D3DA /* MergePictures iOS.app */,
+                        );
+                        name = Products;
+                        sourceTree = "<group>";
+                };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		FD7595352E362B400048D3DA /* MergePictures */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = FD7595452E362B410048D3DA /* Build configuration list for PBXNativeTarget "MergePictures" */;
-			buildPhases = (
-				FD7595322E362B400048D3DA /* Sources */,
-				FD7595332E362B400048D3DA /* Frameworks */,
-				FD7595342E362B400048D3DA /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				FD7595382E362B400048D3DA /* MergePictures */,
-			);
-			name = MergePictures;
-			packageProductDependencies = (
-			);
-			productName = MergePictures;
-			productReference = FD7595362E362B400048D3DA /* MergePictures.app */;
-			productType = "com.apple.product-type.application";
-		};
+                FD7595352E362B400048D3DA /* MergePictures */ = {
+                        isa = PBXNativeTarget;
+                        buildConfigurationList = FD7595452E362B410048D3DA /* Build configuration list for PBXNativeTarget "MergePictures" */;
+                        buildPhases = (
+                                FD7595322E362B400048D3DA /* Sources */,
+                                FD7595332E362B400048D3DA /* Frameworks */,
+                                FD7595342E362B400048D3DA /* Resources */,
+                        );
+                        buildRules = (
+                        );
+                        dependencies = (
+                        );
+                        fileSystemSynchronizedGroups = (
+                                FD7595382E362B400048D3DA /* MergePictures */,
+                        );
+                        name = MergePictures;
+                        packageProductDependencies = (
+                        );
+                        productName = MergePictures;
+                        productReference = FD7595362E362B400048D3DA /* MergePictures.app */;
+                        productType = "com.apple.product-type.application";
+                };
+                FDABAA022E362B410048D3DA /* MergePictures iOS */ = {
+                        isa = PBXNativeTarget;
+                        buildConfigurationList = FDABAA032E362B410048D3DA /* Build configuration list for PBXNativeTarget "MergePictures iOS" */;
+                        buildPhases = (
+                                FD7595322E362B400048D3DA /* Sources */,
+                                FD7595332E362B400048D3DA /* Frameworks */,
+                                FD7595342E362B400048D3DA /* Resources */,
+                        );
+                        buildRules = (
+                        );
+                        dependencies = (
+                        );
+                        fileSystemSynchronizedGroups = (
+                                FD7595382E362B400048D3DA /* MergePictures */,
+                        );
+                        name = "MergePictures iOS";
+                        packageProductDependencies = (
+                        );
+                        productName = "MergePictures iOS";
+                        productReference = FDABAA012E362B410048D3DA /* MergePictures iOS.app */;
+                        productType = "com.apple.product-type.application";
+                };
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -98,10 +122,11 @@
 			productRefGroup = FD7595372E362B400048D3DA /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
-			targets = (
-				FD7595352E362B400048D3DA /* MergePictures */,
-			);
-		};
+                        targets = (
+                                FD7595352E362B400048D3DA /* MergePictures */,
+                                FDABAA022E362B410048D3DA /* MergePictures iOS */,
+                        );
+                };
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -271,34 +296,74 @@
 			};
 			name = Debug;
 		};
-		FD7595472E362B410048D3DA /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = MergePictures/MergePictures.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"MergePictures/Preview Content\"";
-				DEVELOPMENT_TEAM = LH766G25XS;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = binbinc.MergePictures;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
+               FD7595472E362B410048D3DA /* Release */ = {
+                       isa = XCBuildConfiguration;
+                       buildSettings = {
+                               ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                               ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+                               CODE_SIGN_ENTITLEMENTS = MergePictures/MergePictures.entitlements;
+                               "CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+                               CODE_SIGN_STYLE = Automatic;
+                               COMBINE_HIDPI_IMAGES = YES;
+                               CURRENT_PROJECT_VERSION = 1;
+                               DEVELOPMENT_ASSET_PATHS = "\"MergePictures/Preview Content\"";
+                               DEVELOPMENT_TEAM = LH766G25XS;
+                               ENABLE_HARDENED_RUNTIME = YES;
+                               ENABLE_PREVIEWS = YES;
+                               GENERATE_INFOPLIST_FILE = YES;
+                               INFOPLIST_KEY_NSHumanReadableCopyright = "";
+                               LD_RUNPATH_SEARCH_PATHS = (
+                                       "$(inherited)",
+                                       "@executable_path/../Frameworks",
+                               );
+                               MARKETING_VERSION = 1.0;
+                               PRODUCT_BUNDLE_IDENTIFIER = binbinc.MergePictures;
+                               PRODUCT_NAME = "$(TARGET_NAME)";
+                               SWIFT_EMIT_LOC_STRINGS = YES;
+                               SWIFT_VERSION = 5.0;
+                       };
+                       name = Release;
+               };
+                FDABAA042E362B410048D3DA /* Debug */ = {
+                        isa = XCBuildConfiguration;
+                        buildSettings = {
+                                ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                                ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+                                DEVELOPMENT_TEAM = LH766G25XS;
+                                GENERATE_INFOPLIST_FILE = YES;
+                                INFOPLIST_KEY_NSHumanReadableCopyright = "";
+                                IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+                                LD_RUNPATH_SEARCH_PATHS = (
+                                        "$(inherited)",
+                                        "@executable_path/Frameworks",
+                                );
+                                PRODUCT_BUNDLE_IDENTIFIER = binbinc.MergePictures.iOS;
+                                PRODUCT_NAME = "$(TARGET_NAME)";
+                                SWIFT_VERSION = 5.0;
+                                TARGETED_DEVICE_FAMILY = "1,2";
+                        };
+                        name = Debug;
+                };
+                FDABAA052E362B410048D3DA /* Release */ = {
+                        isa = XCBuildConfiguration;
+                        buildSettings = {
+                                ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                                ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+                                DEVELOPMENT_TEAM = LH766G25XS;
+                                GENERATE_INFOPLIST_FILE = YES;
+                                INFOPLIST_KEY_NSHumanReadableCopyright = "";
+                                IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+                                LD_RUNPATH_SEARCH_PATHS = (
+                                        "$(inherited)",
+                                        "@executable_path/Frameworks",
+                                );
+                                PRODUCT_BUNDLE_IDENTIFIER = binbinc.MergePictures.iOS;
+                                PRODUCT_NAME = "$(TARGET_NAME)";
+                                SWIFT_VERSION = 5.0;
+                                TARGETED_DEVICE_FAMILY = "1,2";
+                        };
+                        name = Release;
+                };
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -311,15 +376,24 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		FD7595452E362B410048D3DA /* Build configuration list for PBXNativeTarget "MergePictures" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				FD7595462E362B410048D3DA /* Debug */,
-				FD7595472E362B410048D3DA /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
+                FD7595452E362B410048D3DA /* Build configuration list for PBXNativeTarget "MergePictures" */ = {
+                        isa = XCConfigurationList;
+                        buildConfigurations = (
+                                FD7595462E362B410048D3DA /* Debug */,
+                                FD7595472E362B410048D3DA /* Release */,
+                        );
+                        defaultConfigurationIsVisible = 0;
+                        defaultConfigurationName = Release;
+                };
+                FDABAA032E362B410048D3DA /* Build configuration list for PBXNativeTarget "MergePictures iOS" */ = {
+                        isa = XCConfigurationList;
+                        buildConfigurations = (
+                                FDABAA042E362B410048D3DA /* Debug */,
+                                FDABAA052E362B410048D3DA /* Release */,
+                        );
+                        defaultConfigurationIsVisible = 0;
+                        defaultConfigurationName = Release;
+                };
 /* End XCConfigurationList section */
 	};
 	rootObject = FD75952E2E362B400048D3DA /* Project object */;

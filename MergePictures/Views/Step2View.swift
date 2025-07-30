@@ -1,4 +1,9 @@
 import SwiftUI
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 struct Step2View: View {
     @ObservedObject var viewModel: AppViewModel
@@ -22,7 +27,11 @@ struct Step2View: View {
                         ForEach(Array(viewModel.mergedImages.enumerated()), id: \.offset) { pair in
                             let idx = pair.offset
                             let img = pair.element
+                            #if os(macOS)
                             Image(nsImage: img)
+                            #else
+                            Image(uiImage: img)
+                            #endif
                                 .resizable()
                                 .scaledToFit()
                                 .frame(height: 150 * viewModel.step2PreviewScale)
