@@ -41,6 +41,13 @@ class AppViewModel: ObservableObject {
         images.append(contentsOf: newItems)
     }
 
+    /// Sorts images by filename using Finder-like logic.
+    func sortImagesByName() {
+        images.sort {
+            $0.url.lastPathComponent.localizedStandardCompare($1.url.lastPathComponent) == .orderedAscending
+        }
+    }
+
     func updatePreview() {
         let previewSource = images.prefix(mergeCount).map { $0.image }
         previewImage = merge(images: previewSource, direction: direction)

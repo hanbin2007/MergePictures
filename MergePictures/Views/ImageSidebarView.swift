@@ -7,12 +7,14 @@ struct ImageSidebarView: View {
 
     var body: some View {
         List {
-            ForEach(viewModel.images) { item in
-                SidebarRow(item: item,
-                           hoveredId: $hoveredId,
-                           deleteAction: { delete(item) })
+            Section(header: SidebarHeader(sortAction: viewModel.sortImagesByName)) {
+                ForEach(viewModel.images) { item in
+                    SidebarRow(item: item,
+                               hoveredId: $hoveredId,
+                               deleteAction: { delete(item) })
+                }
+                .onMove(perform: move)
             }
-            .onMove(perform: move)
         }
         .listStyle(.sidebar)
         .frame(minWidth: 200, idealWidth: 220, maxWidth: 300)
@@ -28,6 +30,22 @@ struct ImageSidebarView: View {
             viewModel.images.remove(at: idx)
             viewModel.updatePreview()
         }
+    }
+}
+
+private struct SidebarHeader: View {
+    var sortAction: () -> Void
+
+    var body: some View {
+        HStack {
+            Text("Images")
+            Spacer()
+            Button(action: sortAction) {
+                Label("Sort", systemImage: "arrow.up.arrow.down")
+            }
+            .buttonStyle(.borderless)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
