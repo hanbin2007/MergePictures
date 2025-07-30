@@ -43,6 +43,16 @@ struct ContentView: View {
             }
             .frame(minWidth: 600)
             .padding()
+            .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                        Slider(value: $viewModel.step1PreviewScale, in: 0.5...2.0)
+                    }
+                    .frame(width: 150)
+                    .tint(.accentColor)
+                }
+            }
         }
         .frame(minWidth: 850, minHeight: 400)
     }

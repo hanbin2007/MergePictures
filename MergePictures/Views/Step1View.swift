@@ -18,7 +18,6 @@ struct Step1View: View {
             Button("Swap Order") { viewModel.rotateImages() }
             Text("Selected: \(viewModel.images.count)")
             Spacer()
-            PreviewScaleSlider(scale: $viewModel.step1PreviewScale)
         }
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
