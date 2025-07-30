@@ -60,10 +60,12 @@ struct Step1View: View {
             frameHeight = nil
         }
 
-        return Image(nsImage: image)
-            .resizable()
-            .scaledToFit()
-            .frame(width: width, height: frameHeight)
+        return ScrollView {
+            Image(nsImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(width: width, height: frameHeight)
+        }
     }
 }
 
