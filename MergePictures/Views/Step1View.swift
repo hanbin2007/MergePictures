@@ -21,13 +21,7 @@ struct Step1View: View {
             GeometryReader { proxy in
                 Group {
                     if let img = viewModel.previewImage {
-                        let containerWidth = proxy.size.width
-                        let minWidth = containerWidth * 0.5
-                        let targetWidth = max(minWidth, min(containerWidth, img.size.width))
-                        let targetHeight = targetWidth * (img.size.height / img.size.width)
-                        Image(nsImage: img)
-                            .resizable()
-                            .frame(width: targetWidth, height: targetHeight)
+                        previewImage(for: img, in: proxy)
                     } else {
                         Text("No Preview")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -44,6 +38,20 @@ struct Step1View: View {
                 viewModel.addImages(urls: urls)
             }
         }
+    }
+
+    private func previewImage(for image: NSImage, in proxy: GeometryProxy) -> some View {
+        var heightScale = min(proxy.size.height / image.size.height, 1)
+        var width = image.size.width * heightScale
+        var frameHeight: CGFloat? = image.size.height * heightScale
+        if width < proxy.size.width * 0.5 {
+            width = proxy.size.width * 0.5
+            frameHeight = nil
+        }
+        return Image(nsImage: image)
+            .resizable()
+            .scaledToFit()
+            .frame(width: width, height: frameHeight)
     }
 }
 
