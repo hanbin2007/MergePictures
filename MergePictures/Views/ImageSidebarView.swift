@@ -1,5 +1,9 @@
 import SwiftUI
+#if os(macOS)
 import AppKit
+#else
+import UIKit
+#endif
 
 struct ImageSidebarView: View {
     @ObservedObject var viewModel: AppViewModel
@@ -57,7 +61,11 @@ private struct SidebarRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
+            #if os(macOS)
             Image(nsImage: item.image)
+            #else
+            Image(uiImage: item.image)
+            #endif
                 .resizable()
                 .scaledToFit()
                 .frame(width: 40, height: 40)
