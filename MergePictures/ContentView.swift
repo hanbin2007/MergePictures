@@ -10,13 +10,12 @@ struct ContentView: View {
         VStack(spacing: 10) {
             StepIndicator(current: $viewModel.step)
             Divider()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    content
-                    
-                }
-                .frame(maxWidth: .infinity, alignment: .top)
+
+            VStack(alignment: .leading, spacing: 16) {
+                content
             }
+            .frame(maxWidth: .infinity, alignment: .top)
+            
             HStack {
                 if viewModel.step != .selectImages {
                     Button("Back") {
