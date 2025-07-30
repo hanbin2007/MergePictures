@@ -47,7 +47,7 @@ struct ContentView: View {
                 ToolbarItem(placement: .automatic) {
                     HStack {
                         Image(systemName: "magnifyingglass")
-                        Slider(value: $viewModel.step1PreviewScale, in: 0.5...2.0)
+                        Slider(value: previewScaleBinding, in: 0.5...2.0)
                     }
                     .frame(width: 150)
                     .tint(.accentColor)
@@ -55,6 +55,17 @@ struct ContentView: View {
             }
         }
         .frame(minWidth: 850, minHeight: 400)
+    }
+
+    private var previewScaleBinding: Binding<CGFloat> {
+        switch viewModel.step {
+        case .selectImages:
+            return $viewModel.step1PreviewScale
+        case .previewAll:
+            return $viewModel.step2PreviewScale
+        case .export:
+            return .constant(1.0)
+        }
     }
 
     @ViewBuilder
