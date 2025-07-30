@@ -43,12 +43,24 @@ class AppViewModel: ObservableObject {
         sortImages()
     }
 
-    /// Cycles the image order by moving the first item to the end.
-    /// Clears any generated results and refreshes the preview.
+    /// Rotates image order within each mergeCount-sized group.
+    /// For example, with mergeCount 3 and images [1,2,3,4,5], the result will be
+    /// [2,3,1,5,4]. Results and preview are cleared after rearranging.
     func rotateImages() {
         guard images.count > 1 else { return }
-        let first = images.removeFirst()
-        images.append(first)
+        var newOrder: [ImageItem] = []
+        var index = 0
+        while index < images.count {
+            let end = min(index + mergeCount, images.count)
+            var group = Array(images[index..<end])
+            if group.count > 1 {
+                let first = group.removeFirst()
+                group.append(first)
+            }
+            newOrder.append(contentsOf: group)
+            index += mergeCount
+        }
+        images = newOrder
         mergedImages = []
         updatePreview()
     }
