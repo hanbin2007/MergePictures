@@ -18,6 +18,7 @@ struct Step1View: View {
             Button("Swap Order") { viewModel.rotateImages() }
             Text("Selected: \(viewModel.images.count)")
             Spacer()
+            PreviewScaleSlider(scale: $viewModel.step1PreviewScale)
         }
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -45,9 +46,9 @@ struct Step1View: View {
     }
 
     private func previewImage(for image: NSImage, in proxy: GeometryProxy) -> some View {
-        let heightScale = min(proxy.size.height / image.size.height, 1)
-        var width = image.size.width * heightScale
-        var frameHeight: CGFloat? = image.size.height * heightScale
+        let baseScale = min(proxy.size.height / image.size.height, 1)
+        var width = image.size.width * baseScale * viewModel.step1PreviewScale
+        var frameHeight: CGFloat? = image.size.height * baseScale * viewModel.step1PreviewScale
         if width < proxy.size.width * 0.5 {
             width = proxy.size.width * 0.5
             frameHeight = nil

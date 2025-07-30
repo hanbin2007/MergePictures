@@ -32,6 +32,8 @@ class AppViewModel: ObservableObject {
     @Published var isExporting: Bool = false
     @Published var exportProgress: Double = 0
     @Published var sortAscending: Bool = true
+    @Published var step1PreviewScale: CGFloat = 1.0
+    @Published var step2PreviewScale: CGFloat = 1.0
 
 
     func addImages(urls: [URL]) {
@@ -219,6 +221,8 @@ extension AppViewModel {
             guard let img = NSImage(named: "Placeholder\(idx)") else { return nil }
             return ImageItem(url: URL(fileURLWithPath: "placeholder\(idx).png"), image: img)
         }
+        vm.step1PreviewScale = 1.0
+        vm.step2PreviewScale = 1.0
         vm.updatePreview()
         vm.batchMerge()
         return vm
