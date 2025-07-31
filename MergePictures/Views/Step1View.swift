@@ -35,7 +35,7 @@ struct Step1View: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(.bottom)
+//        .padding(.bottom)
     }
 
     private var settingsSection: some View {
@@ -66,7 +66,7 @@ struct Step1View: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Spacer()
-        }
+        }.padding(.leading)
     }
 
     private func previewImage(for image: NSImage, in proxy: GeometryProxy) -> some View {

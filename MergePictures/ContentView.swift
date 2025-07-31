@@ -39,9 +39,9 @@ struct ContentView: View {
                         .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                     }
                 }
-                .padding(.top)
+//                .padding(.top)
             }
-            .frame(minWidth: 600)
+//            .frame(minWidth: 600)
             .padding()
             .toolbar {
                 ToolbarItem(placement: .automatic) {
@@ -54,7 +54,7 @@ struct ContentView: View {
                 }
             }
         }
-        .frame(minWidth: 850, minHeight: 400)
+        
     }
 
     private var previewScaleBinding: Binding<CGFloat> {
