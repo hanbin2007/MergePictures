@@ -2,7 +2,7 @@ import SwiftUI
 
 struct Step1View: View {
     @ObservedObject var viewModel: AppViewModel
-    @State private var showImporter = false
+    @State public var showImporter = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -33,11 +33,14 @@ struct Step1View: View {
                     }
                 }.frame(width: geometry.size.width * 2/3)
                 Divider()
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading) {
                     Button("Add Images") {
                         showImporter = true
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+//                    .padding()
+                    
+                    Text("Basic Settings").bold().padding(.top)
 
                     Stepper("Merge count: \(viewModel.mergeCount)", value: $viewModel.mergeCount, in: 1...10)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -50,19 +53,15 @@ struct Step1View: View {
                     .pickerStyle(SegmentedPickerStyle())
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Divider().padding(.vertical, 8)
+                    Text("Advance Settings").bold().padding(.top)
 
                     Button("Swap Order") {
                         viewModel.rotateImages()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Text("Selected: \(viewModel.images.count)")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
                     Spacer()
                 }
-//                .padding()
             }
         }
     }
