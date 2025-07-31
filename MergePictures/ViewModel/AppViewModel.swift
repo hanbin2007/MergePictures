@@ -247,8 +247,14 @@ class AppViewModel: ObservableObject {
                     data = res.0
                     ext = res.1
                 } else {
+                    #if os(macOS)
                     data = img.tiffRepresentation!
                     ext = "tiff"
+                    #else
+                    guard let png = img.pngData() else { continue }
+                    data = png
+                    ext = "png"
+                    #endif
                 }
                 let url = directory.appendingPathComponent("merged_\(idx).\(ext)")
                 try? data.write(to: url)
