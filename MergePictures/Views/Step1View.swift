@@ -2,68 +2,71 @@ import SwiftUI
 
 struct Step1View: View {
     @ObservedObject var viewModel: AppViewModel
-    @State public var showImporter = false
+    @State private var showImporter = false
 
     var body: some View {
-        GeometryReader { geometry in
-            HStack {
-                Group {
-                    VStack(alignment: .leading, spacing: 16) {
-                        GeometryReader { proxy in
-                            Group {
-                                if let img = viewModel.previewImage {
-                                    ScrollView([.vertical ,.horizontal]){
-                                        previewImage(for: img, in: proxy)
-                                    }
-                                } else {
-                                    Text("No Preview")
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                        }
-                        .frame(minHeight: geometry.size.height)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(.bottom)
-                    .fileImporter(isPresented: $showImporter, allowedContentTypes: [.image], allowsMultipleSelection: true) { result in
-                        if case let .success(urls) = result {
-                            viewModel.addImages(urls: urls)
-                        }
-                    }
-                }.frame(width: geometry.size.width * 2/3)
-                Divider()
-                VStack(alignment: .leading) {
-                    Button("Add Images") {
-                        showImporter = true
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-//                    .padding()
-                    
-                    Text("Basic Settings").bold().padding(.top)
-
-                    Stepper("Merge count: \(viewModel.mergeCount)", value: $viewModel.mergeCount, in: 1...10)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Picker("Direction", selection: $viewModel.direction) {
-                        ForEach(MergeDirection.allCases) { dir in
-                            Text(dir.rawValue.capitalized).tag(dir)
-                        }
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Text("Advance Settings").bold().padding(.top)
-
-                    Button("Swap Order") {
-                        viewModel.rotateImages()
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Spacer()
-                }
+        HStack(spacing: 0) {
+            previewSection
+            Divider()
+            settingsSection
+                .frame(width: 280)
+        }
+        .fileImporter(isPresented: $showImporter, allowedContentTypes: [.image], allowsMultipleSelection: true) { result in
+            if case let .success(urls) = result {
+                viewModel.addImages(urls: urls)
             }
         }
+    }
+
+    private var previewSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            GeometryReader { proxy in
+                Group {
+                    if let img = viewModel.previewImage {
+                        ScrollView([.vertical, .horizontal]) {
+                            previewImage(for: img, in: proxy)
+                        }
+                    } else {
+                        Text("No Preview")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+//        .padding(.bottom)
+    }
+
+    private var settingsSection: some View {
+        VStack(alignment: .leading) {
+            Button("Add Images") {
+                showImporter = true
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text("Basic Settings").bold().padding(.top)
+
+            Stepper("Merge count: \(viewModel.mergeCount)", value: $viewModel.mergeCount, in: 1...10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Picker("Direction", selection: $viewModel.direction) {
+                ForEach(MergeDirection.allCases) { dir in
+                    Text(dir.rawValue.capitalized).tag(dir)
+                }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text("Advance Settings").bold().padding(.top)
+
+            Button("Swap Order") {
+                viewModel.rotateImages()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer()
+        }.padding(.leading)
     }
 
     private func previewImage(for image: NSImage, in proxy: GeometryProxy) -> some View {
