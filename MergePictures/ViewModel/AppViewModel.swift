@@ -1,5 +1,8 @@
 import SwiftUI
 import Combine
+#if os(iOS)
+import UIKit
+#endif
 
 class AppViewModel: ObservableObject {
     @Published var step: Step = .selectImages
@@ -24,8 +27,8 @@ class AppViewModel: ObservableObject {
             updatePreview()
         }
     }
-    @Published var mergedImages: [NSImage] = []
-    @Published var previewImage: NSImage?
+    @Published var mergedImages: [PlatformImage] = []
+    @Published var previewImage: PlatformImage?
     @Published var maxFileSizeKB: Int = 1024
     @Published var isMerging: Bool = false
     @Published var mergeProgress: Double = 0
@@ -38,7 +41,7 @@ class AppViewModel: ObservableObject {
 
     func addImages(urls: [URL]) {
         let newItems = urls.compactMap { url -> ImageItem? in
-            guard let img = NSImage(contentsOf: url) else { return nil }
+            guard let img = loadPlatformImage(from: url) else { return nil }
             return ImageItem(url: url, image: img)
         }
         images.append(contentsOf: newItems)
@@ -92,7 +95,7 @@ class AppViewModel: ObservableObject {
         mergeProgress = 0
         DispatchQueue.global(qos: .userInitiated).async {
             var index = 0
-            var results: [NSImage] = []
+            var results: [PlatformImage] = []
             while index < self.images.count {
                 let end = min(index + self.mergeCount, self.images.count)
                 let slice = self.images[index..<end].map { $0.image }
@@ -112,7 +115,7 @@ class AppViewModel: ObservableObject {
         }
     }
 
-    func merge(images: [NSImage], direction: MergeDirection) -> NSImage? {
+    func merge(images: [PlatformImage], direction: MergeDirection) -> PlatformImage? {
         guard !images.isEmpty else { return nil }
         let totalSize = images.reduce(CGSize.zero) { partial, image in
             switch direction {
@@ -122,6 +125,7 @@ class AppViewModel: ObservableObject {
                 return CGSize(width: max(partial.width, image.size.width), height: partial.height + image.size.height)
             }
         }
+        #if os(macOS)
         let result = NSImage(size: totalSize)
         result.lockFocus()
         var current = CGPoint.zero
@@ -136,9 +140,26 @@ class AppViewModel: ObservableObject {
         }
         result.unlockFocus()
         return result
+        #else
+        UIGraphicsBeginImageContextWithOptions(totalSize, false, 0)
+        var current = CGPoint.zero
+        for image in images {
+            image.draw(at: current)
+            switch direction {
+            case .horizontal:
+                current.x += image.size.width
+            case .vertical:
+                current.y += image.size.height
+            }
+        }
+        let result = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return result
+        #endif
     }
 
-    func compress(image: NSImage, maxSizeKB: Int) -> (Data, String)? {
+    func compress(image: PlatformImage, maxSizeKB: Int) -> (Data, String)? {
+        #if os(macOS)
         guard let tiff = image.tiffRepresentation,
               var rep = NSBitmapImageRep(data: tiff) else {
             return nil
@@ -181,6 +202,36 @@ class AppViewModel: ObservableObject {
             return (d, "jpg")
         }
         return nil
+        #else
+        var quality: CGFloat = 1.0
+        let minQuality: CGFloat = 0.05
+        let limit = maxSizeKB * 1024
+        var data = image.jpegData(compressionQuality: quality)
+        var currentImage = image
+
+        while let d = data, d.count >= limit {
+            if quality > minQuality {
+                quality = max(minQuality, quality - 0.05)
+            } else {
+                let ratio: CGFloat = 0.95
+                let newSize = CGSize(width: currentImage.size.width * ratio,
+                                     height: currentImage.size.height * ratio)
+                if newSize.width < 1 || newSize.height < 1 { break }
+                UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+                currentImage.draw(in: CGRect(origin: .zero, size: newSize))
+                let scaled = UIGraphicsGetImageFromCurrentImageContext()
+                UIGraphicsEndImageContext()
+                guard let scaledImage = scaled else { break }
+                currentImage = scaledImage
+            }
+            data = currentImage.jpegData(compressionQuality: quality)
+        }
+
+        if let d = data {
+            return (d, "jpg")
+        }
+        return nil
+        #endif
     }
 
     func exportAll(to directory: URL) {
@@ -218,7 +269,7 @@ extension AppViewModel {
     static var preview: AppViewModel {
         let vm = AppViewModel()
         vm.images = (1...3).compactMap { idx in
-            guard let img = NSImage(named: "Placeholder\(idx)") else { return nil }
+            guard let img = platformImageNamed("Placeholder\(idx)") else { return nil }
             return ImageItem(url: URL(fileURLWithPath: "placeholder\(idx).png"), image: img)
         }
         vm.step1PreviewScale = 1.0

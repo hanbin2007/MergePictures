@@ -1,5 +1,7 @@
-import AppKit
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 struct Step3View: View {
     @ObservedObject var viewModel: AppViewModel
@@ -22,6 +24,7 @@ struct Step3View: View {
     }
 
     func exportImages() {
+        #if os(macOS)
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
@@ -29,6 +32,10 @@ struct Step3View: View {
         if panel.runModal() == .OK, let dir = panel.url {
             viewModel.exportAll(to: dir)
         }
+        #else
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        viewModel.exportAll(to: dir)
+        #endif
     }
 }
 

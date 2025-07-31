@@ -1,3 +1,4 @@
+#if os(macOS)
 import SwiftUI
 import AppKit
 
@@ -86,4 +87,6 @@ private struct SidebarRow: View {
 #Preview {
     ImageSidebarView(viewModel: .preview)
 }
+#endif
+
 #endif

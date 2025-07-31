@@ -7,54 +7,63 @@ struct ContentView: View {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
     var body: some View {
+        #if os(macOS)
         NavigationSplitView {
             ImageSidebarView(viewModel: viewModel)
                 .navigationSplitViewColumnWidth(min: 150, ideal: 200, max: 400)
         } detail: {
-            VStack(spacing: 10) {
-                StepIndicator(current: $viewModel.step)
-                Divider()
+            detailContent
+        }
+        #else
+        NavigationStack {
+            detailContent
+        }
+        #endif
+    }
 
-                VStack(alignment: .leading, spacing: 16) {
-                    content
-                }
-                .frame(maxWidth: .infinity, alignment: .top)
+    private var detailContent: some View {
+        VStack(spacing: 10) {
+            StepIndicator(current: $viewModel.step)
+            Divider()
 
-                HStack {
-                    if viewModel.step != .selectImages {
-                        Button("Back") {
-                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                                viewModel.step = prev
-                            }
-                        }
-                        .disabled(viewModel.isExporting)
-                    }
-                    Spacer()
-                    if viewModel.step != .export {
-                        Button("Next") {
-                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                                viewModel.step = next
-                            }
-                        }
-                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
-                    }
-                }
-//                .padding(.top)
+            VStack(alignment: .leading, spacing: 16) {
+                content
             }
-//            .frame(minWidth: 600)
-            .padding()
-            .toolbar {
-                ToolbarItem(placement: .automatic) {
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                        Slider(value: previewScaleBinding, in: 0.5...2.0)
+            .frame(maxWidth: .infinity, alignment: .top)
+
+            HStack {
+                if viewModel.step != .selectImages {
+                    Button("Back") {
+                        if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                            viewModel.step = prev
+                        }
                     }
-                    .frame(width: 150)
-                    .tint(.accentColor)
+                    .disabled(viewModel.isExporting)
+                }
+                Spacer()
+                if viewModel.step != .export {
+                    Button("Next") {
+                        if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                            viewModel.step = next
+                        }
+                    }
+                    .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                 }
             }
         }
-        
+        .padding()
+        #if os(macOS)
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                    Slider(value: previewScaleBinding, in: 0.5...2.0)
+                }
+                .frame(width: 150)
+                .tint(.accentColor)
+            }
+        }
+        #endif
     }
 
     private var previewScaleBinding: Binding<CGFloat> {
