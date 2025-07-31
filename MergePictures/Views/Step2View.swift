@@ -1,4 +1,9 @@
 import SwiftUI
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 struct Step2View: View {
     @ObservedObject var viewModel: AppViewModel
@@ -19,20 +24,12 @@ struct Step2View: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     LazyVGrid(columns: gridLayout) {
-                        ForEach(Array(viewModel.mergedImages.enumerated()), id: \.offset) { pair in
-                            let idx = pair.offset
-                            let img = pair.element
-                            Image(nsImage: img)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 150 * viewModel.step2PreviewScale)
-                                .overlay(alignment: .bottomTrailing) {
-                                    Text("\(idx + 1)")
-                                        .fontWeight(.bold)
-                                        .foregroundColor(colorScheme == .dark ? .white : .black)
-                                        .shadow(color: colorScheme == .dark ? .black.opacity(0.8) : .white.opacity(0.8), radius: 1)
-                                        .padding(4)
-                                }
+                        ForEach(viewModel.mergedImages.indices, id: \.self) { idx in
+                            Step2ImageCell(
+                                image: viewModel.mergedImages[idx],
+                                index: idx,
+                                scale: viewModel.step2PreviewScale
+                            )
                         }
                     }
                     .animation(.default, value: viewModel.step2PreviewScale)
@@ -68,6 +65,40 @@ struct Step2View: View {
         )
         .frame(width:280)
         .padding()
+    }
+}
+
+private struct Step2ImageCell: View {
+    let image: PlatformImage
+    let index: Int
+    let scale: CGFloat
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        platformImage
+            .resizable()
+            .scaledToFit()
+            .frame(height: 150 * scale)
+            .overlay(alignment: .bottomTrailing) { indexOverlay }
+    }
+
+    @ViewBuilder
+    private var platformImage: some View {
+#if os(macOS)
+        Image(nsImage: image)
+#else
+        Image(uiImage: image)
+#endif
+    }
+
+    private var indexOverlay: some View {
+        let textColor: Color = colorScheme == .dark ? .white : .black
+        let shadowColor: Color = colorScheme == .dark ? .black.opacity(0.8) : .white.opacity(0.8)
+        return Text("\(index + 1)")
+            .fontWeight(.bold)
+            .foregroundColor(textColor)
+            .shadow(color: shadowColor, radius: 1)
+            .padding(4)
     }
 }
 
