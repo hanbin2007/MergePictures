@@ -5,41 +5,64 @@ struct Step1View: View {
     @State private var showImporter = false
 
     var body: some View {
-        HStack {
-            Button("Add Images") { showImporter = true }
-            Stepper("Merge count: \(viewModel.mergeCount)", value: $viewModel.mergeCount, in: 1...10)
-            Picker("Direction", selection: $viewModel.direction) {
-                ForEach(MergeDirection.allCases) { dir in
-                    Text(dir.rawValue.capitalized).tag(dir)
-                }
-            }
-            .pickerStyle(SegmentedPickerStyle())
-            Spacer()
-            Button("Swap Order") { viewModel.rotateImages() }
-            Text("Selected: \(viewModel.images.count)")
-            Spacer()
-        }
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                GeometryReader { proxy in
-                    Group {
-                        if let img = viewModel.previewImage {
-                            previewImage(for: img, in: proxy)
-                        } else {
-                            Text("No Preview")
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        GeometryReader { geometry in
+            HStack {
+                Group {
+                    VStack(alignment: .leading, spacing: 16) {
+                        GeometryReader { proxy in
+                            Group {
+                                if let img = viewModel.previewImage {
+                                    ScrollView([.vertical ,.horizontal]){
+                                        previewImage(for: img, in: proxy)
+                                    }
+                                } else {
+                                    Text("No Preview")
+                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                        }
+                        .frame(minHeight: geometry.size.height)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding(.bottom)
+                    .fileImporter(isPresented: $showImporter, allowedContentTypes: [.image], allowsMultipleSelection: true) { result in
+                        if case let .success(urls) = result {
+                            viewModel.addImages(urls: urls)
                         }
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                }.frame(width: geometry.size.width * 2/3)
+                Divider()
+                VStack(alignment: .leading, spacing: 16) {
+                    Button("Add Images") {
+                        showImporter = true
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Stepper("Merge count: \(viewModel.mergeCount)", value: $viewModel.mergeCount, in: 1...10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Picker("Direction", selection: $viewModel.direction) {
+                        ForEach(MergeDirection.allCases) { dir in
+                            Text(dir.rawValue.capitalized).tag(dir)
+                        }
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Divider().padding(.vertical, 8)
+
+                    Button("Swap Order") {
+                        viewModel.rotateImages()
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Text("Selected: \(viewModel.images.count)")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Spacer()
                 }
-                .frame(minHeight: 400)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .padding(.bottom)
-            .fileImporter(isPresented: $showImporter, allowedContentTypes: [.image], allowsMultipleSelection: true) { result in
-                if case let .success(urls) = result {
-                    viewModel.addImages(urls: urls)
-                }
+//                .padding()
             }
         }
     }
@@ -60,12 +83,10 @@ struct Step1View: View {
             frameHeight = nil
         }
 
-        return ScrollView {
-            Image(nsImage: image)
-                .resizable()
-                .scaledToFit()
-                .frame(width: width, height: frameHeight)
-        }
+        return Image(nsImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: width, height: frameHeight)
     }
 }
 
