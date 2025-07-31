@@ -5,6 +5,20 @@ struct Step1View: View {
     @State private var showImporter = false
 
     var body: some View {
+        #if os(iOS)
+        ScrollView {
+            VStack(spacing: 0) {
+                previewSection
+                Divider()
+                settingsSection
+            }
+        }
+        .fileImporter(isPresented: $showImporter, allowedContentTypes: [.image], allowsMultipleSelection: true) { result in
+            if case let .success(urls) = result {
+                viewModel.addImages(urls: urls)
+            }
+        }
+        #else
         HStack(spacing: 0) {
             previewSection
             Divider()
@@ -16,6 +30,7 @@ struct Step1View: View {
                 viewModel.addImages(urls: urls)
             }
         }
+        #endif
     }
 
     private var previewSection: some View {

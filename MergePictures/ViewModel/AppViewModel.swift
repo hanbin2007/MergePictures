@@ -40,10 +40,26 @@ class AppViewModel: ObservableObject {
 
 
     func addImages(urls: [URL]) {
+        #if os(iOS)
+        let newItems = urls.compactMap { url -> ImageItem? in
+            var needsStop = false
+            if url.startAccessingSecurityScopedResource() {
+                needsStop = true
+            }
+            defer {
+                if needsStop {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
+            guard let img = loadPlatformImage(from: url) else { return nil }
+            return ImageItem(url: url, image: img)
+        }
+        #else
         let newItems = urls.compactMap { url -> ImageItem? in
             guard let img = loadPlatformImage(from: url) else { return nil }
             return ImageItem(url: url, image: img)
         }
+        #endif
         images.append(contentsOf: newItems)
         sortImages()
     }
