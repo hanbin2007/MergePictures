@@ -2,6 +2,9 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var viewModel: AppViewModel
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+    #endif
 
     init(viewModel: AppViewModel = AppViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -15,8 +18,16 @@ struct ContentView: View {
             detailContent
         }
         #else
-        NavigationStack {
-            detailContent
+        if hSizeClass == .regular {
+            NavigationSplitView {
+                ImageSidebarView(viewModel: viewModel)
+            } detail: {
+                detailContent
+            }
+        } else {
+            NavigationStack {
+                detailContent
+            }
         }
         #endif
     }

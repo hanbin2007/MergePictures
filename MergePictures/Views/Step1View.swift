@@ -6,11 +6,16 @@ struct Step1View: View {
 
     var body: some View {
         #if os(iOS)
-        ScrollView {
+        GeometryReader { proxy in
             VStack(spacing: 0) {
                 previewSection
+                    .frame(height: proxy.size.height * 0.6)
                 Divider()
-                settingsSection
+                ScrollView {
+                    settingsSection
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(height: proxy.size.height * 0.4)
             }
         }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.image], allowsMultipleSelection: true) { result in
