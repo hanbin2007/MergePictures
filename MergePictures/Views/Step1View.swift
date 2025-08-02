@@ -1,8 +1,15 @@
 import SwiftUI
+#if os(iOS)
+import PhotosUI
+#endif
 
 struct Step1View: View {
     @ObservedObject var viewModel: AppViewModel
+#if os(iOS)
+    @State private var selectedItems: [PhotosPickerItem] = []
+#else
     @State private var showImporter = false
+#endif
 
     var body: some View {
         #if os(iOS)
@@ -18,9 +25,10 @@ struct Step1View: View {
                 .frame(height: proxy.size.height * 0.4)
             }
         }
-        .fileImporter(isPresented: $showImporter, allowedContentTypes: [.image], allowsMultipleSelection: true) { result in
-            if case let .success(urls) = result {
-                viewModel.addImages(urls: urls)
+        .onChange(of: selectedItems) { newItems in
+            Task {
+                await viewModel.addImages(items: newItems)
+                selectedItems = []
             }
         }
         #else
@@ -60,10 +68,17 @@ struct Step1View: View {
 
     private var settingsSection: some View {
         VStack(alignment: .leading) {
+#if os(iOS)
+            PhotosPicker(selection: $selectedItems, maxSelectionCount: 0, matching: .images) {
+                Text("Add Images")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+#else
             Button("Add Images") {
                 showImporter = true
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+#endif
 
             Text("Basic Settings").bold().padding(.top)
 

@@ -2,6 +2,7 @@ import SwiftUI
 import Combine
 #if os(iOS)
 import UIKit
+import PhotosUI
 #endif
 
 class AppViewModel: ObservableObject {
@@ -63,6 +64,22 @@ class AppViewModel: ObservableObject {
         images.append(contentsOf: newItems)
         sortImages()
     }
+
+#if os(iOS)
+    @MainActor
+    func addImages(items: [PhotosPickerItem]) async {
+        var newItems: [ImageItem] = []
+        for item in items {
+            if let data = try? await item.loadTransferable(type: Data.self),
+               let img = PlatformImage(data: data) {
+                let url = URL(fileURLWithPath: "photo-\(UUID().uuidString).png")
+                newItems.append(ImageItem(url: url, image: img))
+            }
+        }
+        images.append(contentsOf: newItems)
+        sortImages()
+    }
+#endif
 
     /// Rotates image order within each mergeCount-sized group.
     /// For example, with mergeCount 3 and images [1,2,3,4,5], the result will be
