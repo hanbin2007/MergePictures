@@ -22,7 +22,7 @@ struct Step2View: View {
                         ForEach(Array(viewModel.mergedImageURLs.enumerated()), id: \.offset) { pair in
                             let idx = pair.offset
                             let url = pair.element
-                            if let img = loadPlatformImage(from: url) {
+                            if let img = loadPlatformImage(from: url, maxDimension: 600 * viewModel.step2PreviewScale) {
                                 Image(platformImage: img)
                                     .resizable()
                                     .scaledToFit()

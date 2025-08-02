@@ -40,6 +40,7 @@ class AppViewModel: ObservableObject {
     @Published var step2PreviewScale: CGFloat = 1.0
 
     private let fileManager = FileManager.default
+    private let maxProcessingDimension: CGFloat = 4096
     private var mergeCacheDirectory: URL?
     private var exportCacheDirectory: URL?
     private var importCacheDirectory: URL?
@@ -186,15 +187,24 @@ class AppViewModel: ObservableObject {
             while index < self.images.count {
                 autoreleasepool {
                     let end = min(index + self.mergeCount, self.images.count)
-                    let slice = self.images[index..<end].compactMap { loadPlatformImage(from: $0.url) }
-                    if let merged = self.merge(images: slice, direction: self.direction),
-                       let dir = self.mergeCacheDirectory {
+                    var merged: PlatformImage?
+                    for item in self.images[index..<end] {
+                        if let img = loadPlatformImage(from: item.url, maxDimension: self.maxProcessingDimension) {
+                            if let current = merged {
+                                merged = self.merge(images: [current, img], direction: self.direction)
+                            } else {
+                                merged = img
+                            }
+                        }
+                    }
+                    if let result = merged, let dir = self.mergeCacheDirectory {
                         let fileURL = dir.appendingPathComponent("merged_\(index / self.mergeCount).png")
-                        try? savePlatformImage(merged, to: fileURL)
+                        try? savePlatformImage(result, to: fileURL)
                         DispatchQueue.main.async {
                             self.mergedImageURLs.append(fileURL)
                         }
                     }
+                    merged = nil
                     index += self.mergeCount
                     DispatchQueue.main.async {
                         self.mergeProgress = Double(index) / Double(self.images.count)
@@ -334,36 +344,32 @@ class AppViewModel: ObservableObject {
         exportCacheDirectory = createTempDirectory(prefix: "export")
         DispatchQueue.global(qos: .userInitiated).async {
             for (idx, url) in self.mergedImageURLs.enumerated() {
-                guard let img = loadPlatformImage(from: url) else {
-                    DispatchQueue.main.async {
-                        self.exportProgress = Double(idx + 1) / Double(self.mergedImageURLs.count)
-                    }
-                    continue
-                }
                 autoreleasepool {
-                    let result = self.compress(image: img, maxSizeKB: self.maxFileSizeKB)
-                    var data: Data?
-                    var ext: String = ""
-                    if let res = result {
-                        data = res.0
-                        ext = res.1
-                    } else {
-                        #if os(macOS)
-                        data = img.tiffRepresentation
-                        ext = "tiff"
-                        #else
-                        data = img.pngData()
-                        ext = "png"
-                        #endif
-                    }
-                    if let finalData = data, let tempDir = self.exportCacheDirectory {
-                        let tempURL = tempDir.appendingPathComponent("export_\(idx).\(ext)")
-                        try? finalData.write(to: tempURL)
-                        let finalURL = directory.appendingPathComponent("merged_\(idx).\(ext)")
-                        do {
-                            try self.fileManager.moveItem(at: tempURL, to: finalURL)
-                        } catch {
-                            try? finalData.write(to: finalURL)
+                    if let img = loadPlatformImage(from: url, maxDimension: self.maxProcessingDimension) {
+                        let result = self.compress(image: img, maxSizeKB: self.maxFileSizeKB)
+                        var data: Data?
+                        var ext: String = ""
+                        if let res = result {
+                            data = res.0
+                            ext = res.1
+                        } else {
+                            #if os(macOS)
+                            data = img.tiffRepresentation
+                            ext = "tiff"
+                            #else
+                            data = img.pngData()
+                            ext = "png"
+                            #endif
+                        }
+                        if let finalData = data, let tempDir = self.exportCacheDirectory {
+                            let tempURL = tempDir.appendingPathComponent("export_\(idx).\(ext)")
+                            try? finalData.write(to: tempURL)
+                            let finalURL = directory.appendingPathComponent("merged_\(idx).\(ext)")
+                            do {
+                                try self.fileManager.moveItem(at: tempURL, to: finalURL)
+                            } catch {
+                                try? finalData.write(to: finalURL)
+                            }
                         }
                     }
                     DispatchQueue.main.async {
