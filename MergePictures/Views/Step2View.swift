@@ -14,25 +14,27 @@ struct Step2View: View {
                     .padding(.vertical)
             }
             ScrollView {
-                if viewModel.mergedImages.isEmpty {
+                if viewModel.mergedImageURLs.isEmpty {
                     reloadPrompt
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     LazyVGrid(columns: gridLayout) {
-                        ForEach(Array(viewModel.mergedImages.enumerated()), id: \.offset) { pair in
+                        ForEach(Array(viewModel.mergedImageURLs.enumerated()), id: \.offset) { pair in
                             let idx = pair.offset
-                            let img = pair.element
-                            Image(platformImage: img)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 150 * viewModel.step2PreviewScale)
-                                .overlay(alignment: .bottomTrailing) {
-                                    Text("\(idx + 1)")
-                                        .fontWeight(.bold)
-                                        .foregroundColor(colorScheme == .dark ? .white : .black)
-                                        .shadow(color: colorScheme == .dark ? .black.opacity(0.8) : .white.opacity(0.8), radius: 1)
-                                        .padding(4)
-                                }
+                            let url = pair.element
+                            if let img = loadPlatformImage(from: url) {
+                                Image(platformImage: img)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 150 * viewModel.step2PreviewScale)
+                                    .overlay(alignment: .bottomTrailing) {
+                                        Text("\(idx + 1)")
+                                            .fontWeight(.bold)
+                                            .foregroundColor(colorScheme == .dark ? .white : .black)
+                                            .shadow(color: colorScheme == .dark ? .black.opacity(0.8) : .white.opacity(0.8), radius: 1)
+                                            .padding(4)
+                                    }
+                            }
                         }
                     }
                     .animation(.default, value: viewModel.step2PreviewScale)
@@ -40,7 +42,7 @@ struct Step2View: View {
             }
         }
         .onAppear {
-            if viewModel.mergedImages.isEmpty {
+            if viewModel.mergedImageURLs.isEmpty {
                 viewModel.batchMerge()
             }
         }
