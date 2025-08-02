@@ -40,7 +40,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 16) {
                 content
             }
-            .frame(maxWidth: .infinity, alignment: .top)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
             HStack {
                 if viewModel.step != .selectImages {
@@ -63,6 +63,7 @@ struct ContentView: View {
             }
         }
         .padding()
+        .frame(maxHeight: .infinity)
         #if os(macOS)
         .toolbar {
             ToolbarItem(placement: .automatic) {
@@ -104,5 +105,7 @@ struct ContentView: View {
 #if DEBUG
 #Preview {
     ContentView(viewModel: .preview)
+        .environment(\.horizontalSizeClass, .compact)
+//        .previewDevice("iPhone 14 Pro")
 }
 #endif

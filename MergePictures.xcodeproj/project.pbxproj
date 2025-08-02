@@ -7,10 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FD2F85952E3DE0EB003285BA /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FD2F85942E3DE0EB003285BA /* LaunchScreen.storyboard */; };
 		FD74EF542E3DD0B200ED2B65 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = FD74EF532E3DD0AB00ED2B65 /* .gitignore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		FD2F85942E3DE0EB003285BA /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		FD74EF532E3DD0AB00ED2B65 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		FD7595362E362B400048D3DA /* MergePictures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MergePictures.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -37,6 +39,7 @@
 		FD75952D2E362B400048D3DA = {
 			isa = PBXGroup;
 			children = (
+				FD2F85942E3DE0EB003285BA /* LaunchScreen.storyboard */,
 				FD74EF532E3DD0AB00ED2B65 /* .gitignore */,
 				FD7595382E362B400048D3DA /* MergePictures */,
 				FD7595372E362B400048D3DA /* Products */,
@@ -115,6 +118,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FD2F85952E3DE0EB003285BA /* LaunchScreen.storyboard in Resources */,
 				FD74EF542E3DD0B200ED2B65 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -270,6 +274,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -302,6 +307,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
