@@ -33,39 +33,41 @@ struct ContentView: View {
     }
 
     private var detailContent: some View {
-        VStack(spacing: 10) {
-            StepIndicator(current: $viewModel.step)
-            Divider()
+        GeometryReader { proxy in
+            VStack(spacing: 10) {
+                StepIndicator(current: $viewModel.step)
+                Divider()
 
-            VStack(alignment: .leading, spacing: 16) {
-                content
-            }
-            .frame(maxWidth: .infinity, alignment: .top)
-
-            Spacer()
-
-            HStack {
-                if viewModel.step != .selectImages {
-                    Button("Back") {
-                        if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                            viewModel.step = prev
-                        }
-                    }
-                    .disabled(viewModel.isExporting)
+                VStack(alignment: .leading, spacing: 16) {
+                    content
                 }
+                .frame(maxWidth: .infinity, alignment: .top)
+
                 Spacer()
-                if viewModel.step != .export {
-                    Button("Next") {
-                        if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                            viewModel.step = next
+
+                HStack {
+                    if viewModel.step != .selectImages {
+                        Button("Back") {
+                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                                viewModel.step = prev
+                            }
                         }
+                        .disabled(viewModel.isExporting)
                     }
-                    .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                    Spacer()
+                    if viewModel.step != .export {
+                        Button("Next") {
+                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                                viewModel.step = next
+                            }
+                        }
+                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                    }
                 }
             }
+            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
+            .padding()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding()
         #if os(macOS)
         .toolbar {
             ToolbarItem(placement: .automatic) {

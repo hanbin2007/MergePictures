@@ -7,39 +7,41 @@ struct Step2View: View {
         [GridItem(.adaptive(minimum: 150 * viewModel.step2PreviewScale))]
     }
     var body: some View {
-        VStack {
-            if viewModel.isMerging {
-                ProgressView(value: viewModel.mergeProgress)
-                    .padding(.vertical)
-            }
-            ScrollView {
-                if viewModel.mergedImages.isEmpty {
-                    reloadPrompt
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    LazyVGrid(columns: gridLayout) {
-                        ForEach(Array(viewModel.mergedImages.enumerated()), id: \.offset) { pair in
-                            let idx = pair.offset
-                            let img = pair.element
-                            Image(platformImage: img)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 150 * viewModel.step2PreviewScale)
-                                .overlay(alignment: .bottomTrailing) {
-                                    Text("\(idx + 1)")
-                                        .fontWeight(.bold)
-                                        .foregroundColor(colorScheme == .dark ? .white : .black)
-                                        .shadow(color: colorScheme == .dark ? .black.opacity(0.8) : .white.opacity(0.8), radius: 1)
-                                        .padding(4)
-                                }
-                        }
-                    }
-                    .animation(.default, value: viewModel.step2PreviewScale)
+        GeometryReader { proxy in
+            VStack {
+                if viewModel.isMerging {
+                    ProgressView(value: viewModel.mergeProgress)
+                        .padding(.vertical)
                 }
+                ScrollView {
+                    if viewModel.mergedImages.isEmpty {
+                        reloadPrompt
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        LazyVGrid(columns: gridLayout) {
+                            ForEach(Array(viewModel.mergedImages.enumerated()), id: \.offset) { pair in
+                                let idx = pair.offset
+                                let img = pair.element
+                                Image(platformImage: img)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 150 * viewModel.step2PreviewScale)
+                                    .overlay(alignment: .bottomTrailing) {
+                                        Text("\(idx + 1)")
+                                            .fontWeight(.bold)
+                                            .foregroundColor(colorScheme == .dark ? .white : .black)
+                                            .shadow(color: colorScheme == .dark ? .black.opacity(0.8) : .white.opacity(0.8), radius: 1)
+                                            .padding(4)
+                                    }
+                            }
+                        }
+                        .animation(.default, value: viewModel.step2PreviewScale)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .onAppear {
             if viewModel.mergedImages.isEmpty {
                 viewModel.batchMerge()
