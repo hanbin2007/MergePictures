@@ -42,6 +42,8 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, alignment: .top)
 
+            Spacer()
+
             HStack {
                 if viewModel.step != .selectImages {
                     Button("Back") {
@@ -62,6 +64,7 @@ struct ContentView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding()
         #if os(macOS)
         .toolbar {

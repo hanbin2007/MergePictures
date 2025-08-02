@@ -7,7 +7,6 @@ struct Step2View: View {
         [GridItem(.adaptive(minimum: 150 * viewModel.step2PreviewScale))]
     }
     var body: some View {
-
         VStack {
             if viewModel.isMerging {
                 ProgressView(value: viewModel.mergeProgress)
@@ -38,7 +37,9 @@ struct Step2View: View {
                     .animation(.default, value: viewModel.step2PreviewScale)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .onAppear {
             if viewModel.mergedImages.isEmpty {
                 viewModel.batchMerge()
