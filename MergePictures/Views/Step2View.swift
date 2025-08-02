@@ -20,21 +20,12 @@ struct Step2View: View {
                 } else {
                     LazyVGrid(columns: gridLayout) {
                         ForEach(Array(viewModel.mergedImageURLs.enumerated()), id: \.offset) { pair in
-                            let idx = pair.offset
-                            let url = pair.element
-                            if let img = loadPlatformImage(from: url, maxDimension: 600 * viewModel.step2PreviewScale) {
-                                Image(platformImage: img)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(height: 150 * viewModel.step2PreviewScale)
-                                    .overlay(alignment: .bottomTrailing) {
-                                        Text("\(idx + 1)")
-                                            .fontWeight(.bold)
-                                            .foregroundColor(colorScheme == .dark ? .white : .black)
-                                            .shadow(color: colorScheme == .dark ? .black.opacity(0.8) : .white.opacity(0.8), radius: 1)
-                                            .padding(4)
-                                    }
-                            }
+                            MergedThumbnail(
+                                url: pair.element,
+                                index: pair.offset,
+                                scale: viewModel.step2PreviewScale,
+                                colorScheme: colorScheme
+                            )
                         }
                     }
                     .animation(.default, value: viewModel.step2PreviewScale)
@@ -70,6 +61,44 @@ struct Step2View: View {
         )
         .frame(width:280)
         .padding()
+    }
+}
+
+private struct MergedThumbnail: View {
+    let url: URL
+    let index: Int
+    let scale: CGFloat
+    let colorScheme: ColorScheme
+
+    @State private var image: PlatformImage?
+
+    var body: some View {
+        ZStack(alignment: .bottomTrailing) {
+            Group {
+                if let image {
+                    Image(platformImage: image)
+                        .resizable()
+                        .scaledToFit()
+                } else {
+                    ProgressView()
+                }
+            }
+            .frame(height: 150 * scale)
+
+            if image != nil {
+                Text("\(index + 1)")
+                    .fontWeight(.bold)
+                    .foregroundColor(colorScheme == .dark ? .white : .black)
+                    .shadow(color: colorScheme == .dark ? .black.opacity(0.8) : .white.opacity(0.8), radius: 1)
+                    .padding(4)
+            }
+        }
+        .task(id: scale) {
+            image = nil
+            image = await Task.detached(priority: .userInitiated) {
+                loadPlatformImage(from: url, maxDimension: 600 * scale)
+            }.value
+        }
     }
 }
 
