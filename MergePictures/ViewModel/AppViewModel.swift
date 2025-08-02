@@ -30,9 +30,20 @@ class AppViewModel: ObservableObject {
     }
     @Published var mergedImageURLs: [URL] = []
     @Published var previewImage: PlatformImage?
-    @Published var maxFileSizeKB: Int = 1024
+    @Published var maxFileSizeKB: Int = 1024 {
+        didSet {
+            cleanupDirectory(exportCacheDirectory)
+            exportCacheDirectory = nil
+            prepareProgress = 0
+            if step == .export {
+                prepareExportCache()
+            }
+        }
+    }
     @Published var isMerging: Bool = false
     @Published var mergeProgress: Double = 0
+    @Published var isPreparingExport: Bool = false
+    @Published var prepareProgress: Double = 0
     @Published var isExporting: Bool = false
     @Published var exportProgress: Double = 0
     @Published var sortAscending: Bool = true
@@ -56,6 +67,10 @@ class AppViewModel: ObservableObject {
         mergedImageURLs = []
         cleanupDirectory(mergeCacheDirectory)
         mergeCacheDirectory = nil
+        cleanupDirectory(exportCacheDirectory)
+        exportCacheDirectory = nil
+        prepareProgress = 0
+        isPreparingExport = false
     }
 
     private func createTempDirectory(prefix: String) -> URL? {
@@ -175,6 +190,46 @@ class AppViewModel: ObservableObject {
     func updatePreview() {
         let previewSource = images.prefix(mergeCount).compactMap { loadPlatformImage(from: $0.url, maxDimension: 1024) }
         previewImage = merge(images: previewSource, direction: direction)
+    }
+
+    func prepareExportCache() {
+        guard exportCacheDirectory == nil, !mergedImageURLs.isEmpty else { return }
+        exportCacheDirectory = createTempDirectory(prefix: "export")
+        guard exportCacheDirectory != nil else { return }
+        isPreparingExport = true
+        prepareProgress = 0
+        DispatchQueue.global(qos: .userInitiated).async {
+            for (idx, url) in self.mergedImageURLs.enumerated() {
+                autoreleasepool {
+                    if let img = loadPlatformImage(from: url, maxDimension: self.maxProcessingDimension) {
+                        var data: Data?
+                        var ext: String = ""
+                        if let result = self.compress(image: img, maxSizeKB: self.maxFileSizeKB) {
+                            data = result.0
+                            ext = result.1
+                        } else {
+                            #if os(macOS)
+                            data = img.tiffRepresentation
+                            ext = "tiff"
+                            #else
+                            data = img.pngData()
+                            ext = "png"
+                            #endif
+                        }
+                        if let d = data, let dir = self.exportCacheDirectory {
+                            let tempURL = dir.appendingPathComponent("export_\(idx).\(ext)")
+                            try? d.write(to: tempURL)
+                        }
+                    }
+                    DispatchQueue.main.async {
+                        self.prepareProgress = Double(idx + 1) / Double(self.mergedImageURLs.count)
+                    }
+                }
+            }
+            DispatchQueue.main.async {
+                self.isPreparingExport = false
+            }
+        }
     }
 
     func batchMerge() {
@@ -338,42 +393,24 @@ class AppViewModel: ObservableObject {
     }
 
     func exportAll(to directory: URL) {
-        guard !mergedImageURLs.isEmpty else { return }
+        guard let cacheDir = exportCacheDirectory, !isPreparingExport else { return }
         isExporting = true
         exportProgress = 0
-        exportCacheDirectory = createTempDirectory(prefix: "export")
         DispatchQueue.global(qos: .userInitiated).async {
-            for (idx, url) in self.mergedImageURLs.enumerated() {
+            let files = ((try? self.fileManager.contentsOfDirectory(at: cacheDir, includingPropertiesForKeys: nil)) ?? [])
+                .sorted { $0.lastPathComponent < $1.lastPathComponent }
+            for (idx, file) in files.enumerated() {
                 autoreleasepool {
-                    if let img = loadPlatformImage(from: url, maxDimension: self.maxProcessingDimension) {
-                        let result = self.compress(image: img, maxSizeKB: self.maxFileSizeKB)
-                        var data: Data?
-                        var ext: String = ""
-                        if let res = result {
-                            data = res.0
-                            ext = res.1
-                        } else {
-                            #if os(macOS)
-                            data = img.tiffRepresentation
-                            ext = "tiff"
-                            #else
-                            data = img.pngData()
-                            ext = "png"
-                            #endif
-                        }
-                        if let finalData = data, let tempDir = self.exportCacheDirectory {
-                            let tempURL = tempDir.appendingPathComponent("export_\(idx).\(ext)")
-                            try? finalData.write(to: tempURL)
-                            let finalURL = directory.appendingPathComponent("merged_\(idx).\(ext)")
-                            do {
-                                try self.fileManager.moveItem(at: tempURL, to: finalURL)
-                            } catch {
-                                try? finalData.write(to: finalURL)
-                            }
-                        }
+                    let ext = file.pathExtension
+                    let finalURL = directory.appendingPathComponent("merged_\(idx).\(ext)")
+                    try? self.fileManager.removeItem(at: finalURL)
+                    do {
+                        try self.fileManager.copyItem(at: file, to: finalURL)
+                    } catch {
+                        // ignore copy errors
                     }
                     DispatchQueue.main.async {
-                        self.exportProgress = Double(idx + 1) / Double(self.mergedImageURLs.count)
+                        self.exportProgress = Double(idx + 1) / Double(files.count)
                     }
                 }
             }

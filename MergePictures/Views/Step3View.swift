@@ -10,16 +10,23 @@ struct Step3View: View {
         ScrollView {
             VStack(alignment: .leading) {
                 Stepper("Max KB: \(viewModel.maxFileSizeKB)", value: $viewModel.maxFileSizeKB, in: 100...10000, step: 100)
-                if viewModel.isExporting {
+                if viewModel.isPreparingExport {
+                    ProgressView(value: viewModel.prepareProgress)
+                        .padding(.vertical)
+                } else if viewModel.isExporting {
                     ProgressView(value: viewModel.exportProgress)
                         .padding(.vertical)
                 }
                 Button("Export") { exportImages() }
+                    .disabled(viewModel.isPreparingExport || viewModel.isExporting)
                 if viewModel.exportProgress == 1 && !viewModel.isExporting {
                     Text("Export Completed!").foregroundColor(.green)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .onAppear {
+            viewModel.prepareExportCache()
         }
     }
 
