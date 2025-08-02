@@ -3,6 +3,7 @@ import Combine
 #if os(iOS)
 import UIKit
 import PhotosUI
+import Photos
 #endif
 
 class AppViewModel: ObservableObject {
@@ -55,6 +56,12 @@ class AppViewModel: ObservableObject {
     private var mergeCacheDirectory: URL?
     private var exportCacheDirectory: URL?
     private var importCacheDirectory: URL?
+
+    var exportFileURLs: [URL] {
+        guard let cacheDir = exportCacheDirectory else { return [] }
+        return ((try? fileManager.contentsOfDirectory(at: cacheDir, includingPropertiesForKeys: nil)) ?? [])
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+    }
 
     deinit {
         cleanupDirectory(mergeCacheDirectory)
@@ -391,6 +398,48 @@ class AppViewModel: ObservableObject {
         return nil
         #endif
     }
+
+#if canImport(Photos)
+    func saveExportedImagesToPhotos(completion: @escaping (Bool) -> Void) {
+        let urls = exportFileURLs
+        guard !urls.isEmpty, !isPreparingExport else {
+            completion(false)
+            return
+        }
+        isExporting = true
+        exportProgress = 0
+        PHPhotoLibrary.requestAuthorization { status in
+            guard status == .authorized || status == .limited else {
+                DispatchQueue.main.async {
+                    self.isExporting = false
+                    completion(false)
+                }
+                return
+            }
+            DispatchQueue.global(qos: .userInitiated).async {
+                var success = true
+                for (idx, url) in urls.enumerated() {
+                    let group = DispatchGroup()
+                    group.enter()
+                    PHPhotoLibrary.shared().performChanges({
+                        PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
+                    }) { s, _ in
+                        success = success && s
+                        group.leave()
+                    }
+                    group.wait()
+                    DispatchQueue.main.async {
+                        self.exportProgress = Double(idx + 1) / Double(urls.count)
+                    }
+                }
+                DispatchQueue.main.async {
+                    self.isExporting = false
+                    completion(success)
+                }
+            }
+        }
+    }
+#endif
 
     func exportAll(to directory: URL) {
         guard let cacheDir = exportCacheDirectory, !isPreparingExport else { return }
