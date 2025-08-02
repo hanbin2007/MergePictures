@@ -1,23 +1,33 @@
 import SwiftUI
+#if os(macOS)
 import AppKit
+#endif
 
 struct ImageSidebarView: View {
     @ObservedObject var viewModel: AppViewModel
+    #if os(macOS)
     @State private var hoveredId: UUID?
+    #endif
 
     var body: some View {
         List {
             Section(header: SidebarHeader(ascending: viewModel.sortAscending, toggleAction: viewModel.toggleSortOrder)) {
                 ForEach(viewModel.images) { item in
+                    #if os(macOS)
                     SidebarRow(item: item,
                                hoveredId: $hoveredId,
                                deleteAction: { delete(item) })
+                    #else
+                    SidebarRow(item: item, deleteAction: { delete(item) })
+                    #endif
                 }
                 .onMove(perform: move)
             }
         }
         .listStyle(.sidebar)
+        #if os(macOS)
         .frame(minWidth: 200, idealWidth: 220, maxWidth: 400)
+        #endif
     }
 
     private func move(from source: IndexSet, to destination: Int) {
@@ -50,6 +60,7 @@ private struct SidebarHeader: View {
     }
 }
 
+#if os(macOS)
 private struct SidebarRow: View {
     let item: ImageItem
     @Binding var hoveredId: UUID?
@@ -81,6 +92,28 @@ private struct SidebarRow: View {
         }
     }
 }
+#else
+private struct SidebarRow: View {
+    let item: ImageItem
+    var deleteAction: () -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(uiImage: item.image)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 40, height: 40)
+                .cornerRadius(4)
+            Text(item.url.lastPathComponent)
+                .lineLimit(1)
+            Spacer()
+        }
+        .padding(.vertical, 2)
+        .padding(.horizontal, 4)
+        .swipeActions { Button(role: .destructive, action: deleteAction) { Image(systemName: "trash") } }
+    }
+}
+#endif
 
 #if DEBUG
 #Preview {

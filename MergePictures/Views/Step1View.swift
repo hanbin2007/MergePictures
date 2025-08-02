@@ -5,6 +5,25 @@ struct Step1View: View {
     @State private var showImporter = false
 
     var body: some View {
+        #if os(iOS)
+        GeometryReader { proxy in
+            VStack(spacing: 0) {
+                previewSection
+                    .frame(height: proxy.size.height * 0.6)
+                Divider()
+                ScrollView {
+                    settingsSection
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(height: proxy.size.height * 0.4)
+            }
+        }
+        .fileImporter(isPresented: $showImporter, allowedContentTypes: [.image], allowsMultipleSelection: true) { result in
+            if case let .success(urls) = result {
+                viewModel.addImages(urls: urls)
+            }
+        }
+        #else
         HStack(spacing: 0) {
             previewSection
             Divider()
@@ -16,6 +35,7 @@ struct Step1View: View {
                 viewModel.addImages(urls: urls)
             }
         }
+        #endif
     }
 
     private var previewSection: some View {
@@ -69,7 +89,7 @@ struct Step1View: View {
         }.padding(.leading)
     }
 
-    private func previewImage(for image: NSImage, in proxy: GeometryProxy) -> some View {
+    private func previewImage(for image: PlatformImage, in proxy: GeometryProxy) -> some View {
         let baseScale: CGFloat
         if viewModel.direction == .vertical {
             baseScale = min(proxy.size.width / image.size.width, 1)
@@ -85,7 +105,7 @@ struct Step1View: View {
             frameHeight = nil
         }
 
-        return Image(nsImage: image)
+        return Image(platformImage: image)
                     .resizable()
                     .scaledToFit()
                     .frame(width: width, height: frameHeight)

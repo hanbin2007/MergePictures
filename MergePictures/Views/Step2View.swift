@@ -22,7 +22,7 @@ struct Step2View: View {
                         ForEach(Array(viewModel.mergedImages.enumerated()), id: \.offset) { pair in
                             let idx = pair.offset
                             let img = pair.element
-                            Image(nsImage: img)
+                            Image(platformImage: img)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(height: 150 * viewModel.step2PreviewScale)
