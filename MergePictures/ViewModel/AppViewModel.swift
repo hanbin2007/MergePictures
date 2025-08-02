@@ -312,32 +312,36 @@ class AppViewModel: ObservableObject {
         exportCacheDirectory = createTempDirectory(prefix: "export")
         DispatchQueue.global(qos: .userInitiated).async {
             for (idx, url) in self.mergedImageURLs.enumerated() {
+                guard let img = loadPlatformImage(from: url) else {
+                    DispatchQueue.main.async {
+                        self.exportProgress = Double(idx + 1) / Double(self.mergedImageURLs.count)
+                    }
+                    continue
+                }
                 autoreleasepool {
-                    guard let img = loadPlatformImage(from: url) else { continue }
                     let result = self.compress(image: img, maxSizeKB: self.maxFileSizeKB)
-                    let data: Data
-                    let ext: String
+                    var data: Data?
+                    var ext: String = ""
                     if let res = result {
                         data = res.0
                         ext = res.1
                     } else {
                         #if os(macOS)
-                        data = img.tiffRepresentation!
+                        data = img.tiffRepresentation
                         ext = "tiff"
                         #else
-                        guard let png = img.pngData() else { continue }
-                        data = png
+                        data = img.pngData()
                         ext = "png"
                         #endif
                     }
-                    if let tempDir = self.exportCacheDirectory {
+                    if let finalData = data, let tempDir = self.exportCacheDirectory {
                         let tempURL = tempDir.appendingPathComponent("export_\(idx).\(ext)")
-                        try? data.write(to: tempURL)
+                        try? finalData.write(to: tempURL)
                         let finalURL = directory.appendingPathComponent("merged_\(idx).\(ext)")
                         do {
                             try self.fileManager.moveItem(at: tempURL, to: finalURL)
                         } catch {
-                            try? data.write(to: finalURL)
+                            try? finalData.write(to: finalURL)
                         }
                     }
                     DispatchQueue.main.async {
