@@ -36,10 +36,7 @@ struct ImageSidebarView: View {
     }
 
     private func delete(_ item: ImageItem) {
-        if let idx = viewModel.images.firstIndex(where: { $0.id == item.id }) {
-            viewModel.images.remove(at: idx)
-            viewModel.updatePreview()
-        }
+        viewModel.removeImage(item)
     }
 }
 
@@ -68,7 +65,7 @@ private struct SidebarRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(nsImage: item.image)
+            Image(nsImage: item.preview)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 40, height: 40)
@@ -99,7 +96,7 @@ private struct SidebarRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(uiImage: item.image)
+            Image(uiImage: item.preview)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 40, height: 40)

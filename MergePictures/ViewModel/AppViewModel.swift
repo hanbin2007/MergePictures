@@ -42,10 +42,12 @@ class AppViewModel: ObservableObject {
     private let fileManager = FileManager.default
     private var mergeCacheDirectory: URL?
     private var exportCacheDirectory: URL?
+    private var importCacheDirectory: URL?
 
     deinit {
         cleanupDirectory(mergeCacheDirectory)
         cleanupDirectory(exportCacheDirectory)
+        cleanupDirectory(importCacheDirectory)
     }
 
     /// Removes any previously merged results and deletes cached files.
@@ -83,13 +85,13 @@ class AppViewModel: ObservableObject {
                     url.stopAccessingSecurityScopedResource()
                 }
             }
-            guard let img = loadPlatformImage(from: url) else { return nil }
-            return ImageItem(url: url, image: img)
+            guard let preview = loadPlatformImage(from: url, maxDimension: 1024) else { return nil }
+            return ImageItem(url: url, preview: preview)
         }
         #else
         let newItems = urls.compactMap { url -> ImageItem? in
-            guard let img = loadPlatformImage(from: url) else { return nil }
-            return ImageItem(url: url, image: img)
+            guard let preview = loadPlatformImage(from: url, maxDimension: 1024) else { return nil }
+            return ImageItem(url: url, preview: preview)
         }
         #endif
         images.append(contentsOf: newItems)
@@ -100,11 +102,17 @@ class AppViewModel: ObservableObject {
     @MainActor
     func addImages(items: [PhotosPickerItem]) async {
         var newItems: [ImageItem] = []
+        if importCacheDirectory == nil {
+            importCacheDirectory = createTempDirectory(prefix: "import")
+        }
+        guard let dir = importCacheDirectory else { return }
         for item in items {
-            if let data = try? await item.loadTransferable(type: Data.self),
-               let img = PlatformImage(data: data) {
-                let url = URL(fileURLWithPath: "photo-\(UUID().uuidString).png")
-                newItems.append(ImageItem(url: url, image: img))
+            if let data = try? await item.loadTransferable(type: Data.self) {
+                let url = dir.appendingPathComponent("photo-\(UUID().uuidString).img")
+                try? data.write(to: url)
+                if let preview = loadPlatformImage(from: url, maxDimension: 1024) {
+                    newItems.append(ImageItem(url: url, preview: preview))
+                }
             }
         }
         images.append(contentsOf: newItems)
@@ -149,8 +157,22 @@ class AppViewModel: ObservableObject {
         sortImages()
     }
 
+    func removeImage(_ item: ImageItem) {
+        if let idx = images.firstIndex(where: { $0.id == item.id }) {
+            images.remove(at: idx)
+            if let dir = importCacheDirectory, item.url.path.hasPrefix(dir.path) {
+                try? fileManager.removeItem(at: item.url)
+            }
+            if images.isEmpty {
+                cleanupDirectory(importCacheDirectory)
+                importCacheDirectory = nil
+            }
+            updatePreview()
+        }
+    }
+
     func updatePreview() {
-        let previewSource = images.prefix(mergeCount).map { $0.image }
+        let previewSource = images.prefix(mergeCount).compactMap { loadPlatformImage(from: $0.url, maxDimension: 1024) }
         previewImage = merge(images: previewSource, direction: direction)
     }
 
@@ -164,7 +186,7 @@ class AppViewModel: ObservableObject {
             while index < self.images.count {
                 autoreleasepool {
                     let end = min(index + self.mergeCount, self.images.count)
-                    let slice = self.images[index..<end].map { $0.image }
+                    let slice = self.images[index..<end].compactMap { loadPlatformImage(from: $0.url) }
                     if let merged = self.merge(images: slice, direction: self.direction),
                        let dir = self.mergeCacheDirectory {
                         let fileURL = dir.appendingPathComponent("merged_\(index / self.mergeCount).png")
@@ -365,7 +387,7 @@ extension AppViewModel {
         let vm = AppViewModel()
         vm.images = (1...3).compactMap { idx in
             guard let img = platformImageNamed("Placeholder\(idx)") else { return nil }
-            return ImageItem(url: URL(fileURLWithPath: "placeholder\(idx).png"), image: img)
+            return ImageItem(url: URL(fileURLWithPath: "placeholder\(idx).png"), preview: img)
         }
         vm.step1PreviewScale = 1.0
         vm.step2PreviewScale = 1.0

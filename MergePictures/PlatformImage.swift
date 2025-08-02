@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import ImageIO
 #if os(macOS)
 import AppKit
 public typealias PlatformImage = NSImage
@@ -18,12 +19,29 @@ public extension Image {
     }
 }
 
-public func loadPlatformImage(from url: URL) -> PlatformImage? {
-    #if os(macOS)
-    return NSImage(contentsOf: url)
-    #else
-    return UIImage(contentsOfFile: url.path)
-    #endif
+public func loadPlatformImage(from url: URL, maxDimension: CGFloat? = nil) -> PlatformImage? {
+    if let max = maxDimension {
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: max
+        ]
+        guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let cg = CGImageSourceCreateThumbnailAtIndex(src, 0, options as CFDictionary) else {
+            return nil
+        }
+        #if os(macOS)
+        return NSImage(cgImage: cg, size: .zero)
+        #else
+        return UIImage(cgImage: cg)
+        #endif
+    } else {
+        #if os(macOS)
+        return NSImage(contentsOf: url)
+        #else
+        return UIImage(contentsOfFile: url.path)
+        #endif
+    }
 }
 
 public func platformImageNamed(_ name: String) -> PlatformImage? {
