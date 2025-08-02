@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		FD2F85952E3DE0EB003285BA /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FD2F85942E3DE0EB003285BA /* LaunchScreen.storyboard */; };
+		FD2F85952E3DE0EB003285BA /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FD2F85942E3DE0EB003285BA /* LaunchScreen.storyboard */; platformFilter = ios; };
 		FD74EF542E3DD0B200ED2B65 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = FD74EF532E3DD0AB00ED2B65 /* .gitignore */; };
 /* End PBXBuildFile section */
 
@@ -273,8 +273,10 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -306,8 +308,10 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
