@@ -6,7 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		FD74EF542E3DD0B200ED2B65 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = FD74EF532E3DD0AB00ED2B65 /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		FD74EF532E3DD0AB00ED2B65 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		FD7595362E362B400048D3DA /* MergePictures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MergePictures.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -32,6 +37,7 @@
 		FD75952D2E362B400048D3DA = {
 			isa = PBXGroup;
 			children = (
+				FD74EF532E3DD0AB00ED2B65 /* .gitignore */,
 				FD7595382E362B400048D3DA /* MergePictures */,
 				FD7595372E362B400048D3DA /* Products */,
 			);
@@ -109,6 +115,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FD74EF542E3DD0B200ED2B65 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
