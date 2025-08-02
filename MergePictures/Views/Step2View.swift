@@ -96,7 +96,7 @@ private struct MergedThumbnail: View {
         .task(id: scale) {
             image = nil
             image = await Task.detached(priority: .userInitiated) {
-                loadPlatformImage(from: url, maxDimension: 600 * scale)
+                loadPlatformImage(from: url, maxDimension: 400 * scale)
             }.value
         }
     }

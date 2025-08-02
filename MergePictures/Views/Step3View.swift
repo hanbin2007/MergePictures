@@ -16,24 +16,21 @@ struct Step3View: View {
         ScrollView {
             VStack(alignment: .leading) {
                 Stepper("Max KB: \(viewModel.maxFileSizeKB)", value: $viewModel.maxFileSizeKB, in: 100...10000, step: 100)
-                if viewModel.isPreparingExport {
-                    ProgressView(value: viewModel.prepareProgress)
-                        .padding(.vertical)
-                } else if viewModel.isExporting {
+                if viewModel.isExporting {
                     ProgressView(value: viewModel.exportProgress)
                         .padding(.vertical)
                 }
                 #if os(macOS)
                 Button("Export") { exportImages() }
-                    .disabled(viewModel.isPreparingExport || viewModel.isExporting)
+                    .disabled(viewModel.isExporting)
                 if viewModel.exportProgress == 1 && !viewModel.isExporting {
                     Text("Export Completed!").foregroundColor(.green)
                 }
                 #else
                 Button("Share") { exportImages() }
-                    .disabled(viewModel.isPreparingExport || viewModel.isExporting)
+                    .disabled(viewModel.isExporting)
                 Button("Save to Photos") { saveToPhotos() }
-                    .disabled(viewModel.isPreparingExport || viewModel.isExporting)
+                    .disabled(viewModel.isExporting)
                 if let msg = saveMessage {
                     Text(msg).foregroundColor(.green)
                 }
@@ -41,11 +38,10 @@ struct Step3View: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .onAppear {
-            viewModel.prepareExportCache()
-        }
 #if !os(macOS)
-        .sheet(isPresented: $isSharePresented) {
+        .sheet(isPresented: $isSharePresented, onDismiss: {
+            viewModel.clearExportCache()
+        }) {
             ActivityView(items: viewModel.exportFileURLs)
         }
 #endif
@@ -58,16 +54,28 @@ struct Step3View: View {
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
         if panel.runModal() == .OK, let dir = panel.url {
-            viewModel.exportAll(to: dir)
+            viewModel.generateExportCache { success in
+                if success {
+                    viewModel.exportAll(to: dir)
+                }
+            }
         }
         #else
-        isSharePresented = true
+        viewModel.generateExportCache { success in
+            if success {
+                isSharePresented = true
+            }
+        }
         #endif
     }
 #if !os(macOS)
     func saveToPhotos() {
-        viewModel.saveExportedImagesToPhotos { success in
-            saveMessage = success ? "Saved to Photos" : "Save Failed"
+        viewModel.generateExportCache { success in
+            if success {
+                viewModel.saveExportedImagesToPhotos { s in
+                    saveMessage = s ? "Saved to Photos" : "Save Failed"
+                }
+            }
         }
     }
 #endif

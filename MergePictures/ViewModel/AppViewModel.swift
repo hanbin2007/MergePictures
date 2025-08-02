@@ -35,16 +35,10 @@ class AppViewModel: ObservableObject {
         didSet {
             cleanupDirectory(exportCacheDirectory)
             exportCacheDirectory = nil
-            prepareProgress = 0
-            if step == .export {
-                prepareExportCache()
-            }
         }
     }
     @Published var isMerging: Bool = false
     @Published var mergeProgress: Double = 0
-    @Published var isPreparingExport: Bool = false
-    @Published var prepareProgress: Double = 0
     @Published var isExporting: Bool = false
     @Published var exportProgress: Double = 0
     @Published var sortAscending: Bool = true
@@ -52,7 +46,8 @@ class AppViewModel: ObservableObject {
     @Published var step2PreviewScale: CGFloat = 1.0
 
     private let fileManager = FileManager.default
-    private let maxProcessingDimension: CGFloat = 4096
+    private let previewMergeDimension: CGFloat = 2048
+    private let exportProcessingDimension: CGFloat = 4096
     private var mergeCacheDirectory: URL?
     private var exportCacheDirectory: URL?
     private var importCacheDirectory: URL?
@@ -74,10 +69,12 @@ class AppViewModel: ObservableObject {
         mergedImageURLs = []
         cleanupDirectory(mergeCacheDirectory)
         mergeCacheDirectory = nil
+        clearExportCache()
+    }
+
+    func clearExportCache() {
         cleanupDirectory(exportCacheDirectory)
         exportCacheDirectory = nil
-        prepareProgress = 0
-        isPreparingExport = false
     }
 
     private func createTempDirectory(prefix: String) -> URL? {
@@ -199,45 +196,6 @@ class AppViewModel: ObservableObject {
         previewImage = merge(images: previewSource, direction: direction)
     }
 
-    func prepareExportCache() {
-        guard exportCacheDirectory == nil, !mergedImageURLs.isEmpty else { return }
-        exportCacheDirectory = createTempDirectory(prefix: "export")
-        guard exportCacheDirectory != nil else { return }
-        isPreparingExport = true
-        prepareProgress = 0
-        DispatchQueue.global(qos: .userInitiated).async {
-            for (idx, url) in self.mergedImageURLs.enumerated() {
-                autoreleasepool {
-                    if let img = loadPlatformImage(from: url, maxDimension: self.maxProcessingDimension) {
-                        var data: Data?
-                        var ext: String = ""
-                        if let result = self.compress(image: img, maxSizeKB: self.maxFileSizeKB) {
-                            data = result.0
-                            ext = result.1
-                        } else {
-                            #if os(macOS)
-                            data = img.tiffRepresentation
-                            ext = "tiff"
-                            #else
-                            data = img.pngData()
-                            ext = "png"
-                            #endif
-                        }
-                        if let d = data, let dir = self.exportCacheDirectory {
-                            let tempURL = dir.appendingPathComponent("export_\(idx).\(ext)")
-                            try? d.write(to: tempURL)
-                        }
-                    }
-                    DispatchQueue.main.async {
-                        self.prepareProgress = Double(idx + 1) / Double(self.mergedImageURLs.count)
-                    }
-                }
-            }
-            DispatchQueue.main.async {
-                self.isPreparingExport = false
-            }
-        }
-    }
 
     func batchMerge() {
         clearMergedResults()
@@ -251,7 +209,7 @@ class AppViewModel: ObservableObject {
                     let end = min(index + self.mergeCount, self.images.count)
                     var merged: PlatformImage?
                     for item in self.images[index..<end] {
-                        if let img = loadPlatformImage(from: item.url, maxDimension: self.maxProcessingDimension) {
+                        if let img = loadPlatformImage(from: item.url, maxDimension: self.previewMergeDimension) {
                             if let current = merged {
                                 merged = self.merge(images: [current, img], direction: self.direction)
                             } else {
@@ -276,6 +234,77 @@ class AppViewModel: ObservableObject {
             DispatchQueue.main.async {
                 self.isMerging = false
                 self.mergeProgress = 1.0
+            }
+        }
+    }
+
+    func generateExportCache(completion: @escaping (Bool) -> Void) {
+        if exportCacheDirectory != nil {
+            completion(true)
+            return
+        }
+        guard !images.isEmpty else {
+            completion(false)
+            return
+        }
+        exportCacheDirectory = createTempDirectory(prefix: "export")
+        guard let dir = exportCacheDirectory else {
+            completion(false)
+            return
+        }
+        isExporting = true
+        exportProgress = 0
+        DispatchQueue.global(qos: .userInitiated).async {
+            var index = 0
+            var group = 0
+            let totalGroups = Int(ceil(Double(self.images.count) / Double(self.mergeCount)))
+            var success = true
+            while index < self.images.count {
+                autoreleasepool {
+                    let end = min(index + self.mergeCount, self.images.count)
+                    var merged: PlatformImage?
+                    for item in self.images[index..<end] {
+                        if let img = loadPlatformImage(from: item.url, maxDimension: self.exportProcessingDimension) {
+                            if let current = merged {
+                                merged = self.merge(images: [current, img], direction: self.direction)
+                            } else {
+                                merged = img
+                            }
+                        }
+                    }
+                    if let result = merged {
+                        var data: Data?
+                        var ext: String = ""
+                        if let comp = self.compress(image: result, maxSizeKB: self.maxFileSizeKB) {
+                            data = comp.0
+                            ext = comp.1
+                        } else {
+                            #if os(macOS)
+                            data = result.tiffRepresentation
+                            ext = "tiff"
+                            #else
+                            data = result.pngData()
+                            ext = "png"
+                            #endif
+                        }
+                        if let d = data {
+                            let fileURL = dir.appendingPathComponent("export_\(group).\(ext)")
+                            try? d.write(to: fileURL)
+                        } else {
+                            success = false
+                        }
+                    }
+                    merged = nil
+                    index += self.mergeCount
+                    group += 1
+                    DispatchQueue.main.async {
+                        self.exportProgress = Double(group) / Double(totalGroups)
+                    }
+                }
+            }
+            DispatchQueue.main.async {
+                self.isExporting = false
+                completion(success)
             }
         }
     }
@@ -326,75 +355,75 @@ class AppViewModel: ObservableObject {
     func compress(image: PlatformImage, maxSizeKB: Int) -> (Data, String)? {
         #if os(macOS)
         guard let tiff = image.tiffRepresentation,
-              var rep = NSBitmapImageRep(data: tiff) else {
+              let rep = NSBitmapImageRep(data: tiff) else {
             return nil
         }
-
+        let limit = maxSizeKB * 1024
         var quality: CGFloat = 1.0
         let minQuality: CGFloat = 0.05
-        let limit = maxSizeKB * 1024
         var data = rep.representation(using: .jpeg, properties: [.compressionFactor: quality])
-
-        var currentImage = image
-
-        while let d = data, d.count >= limit {
-            if quality > minQuality {
-                quality = max(minQuality, quality - 0.05)
-            } else {
-                // quality already minimal, start reducing resolution gradually
-                let ratio: CGFloat = 0.95
-                let newSize = NSSize(width: currentImage.size.width * ratio,
-                                     height: currentImage.size.height * ratio)
-                if newSize.width < 1 || newSize.height < 1 {
-                    break
-                }
-                let scaled = NSImage(size: newSize)
-                scaled.lockFocus()
-                NSGraphicsContext.current?.imageInterpolation = .high
-                currentImage.draw(in: NSRect(origin: .zero, size: newSize))
-                scaled.unlockFocus()
-                currentImage = scaled
-                guard let newTiff = currentImage.tiffRepresentation,
-                      let newRep = NSBitmapImageRep(data: newTiff) else {
-                    break
-                }
-                rep = newRep
-            }
+        while let d = data, d.count > limit, quality > minQuality {
+            quality = max(minQuality, quality - 0.05)
             data = rep.representation(using: .jpeg, properties: [.compressionFactor: quality])
         }
-
-        if let d = data {
+        if let d = data, d.count <= limit {
             return (d, "jpg")
         }
+        var lower: CGFloat = 0.0
+        var upper: CGFloat = 1.0
+        var bestData: Data?
+        while upper - lower > 0.01 {
+            let scale = (lower + upper) / 2
+            let newSize = NSSize(width: image.size.width * scale, height: image.size.height * scale)
+            let scaled = NSImage(size: newSize)
+            scaled.lockFocus()
+            NSGraphicsContext.current?.imageInterpolation = .high
+            image.draw(in: NSRect(origin: .zero, size: newSize))
+            scaled.unlockFocus()
+            guard let scaledTiff = scaled.tiffRepresentation,
+                  let scaledRep = NSBitmapImageRep(data: scaledTiff) else { break }
+            let d = scaledRep.representation(using: .jpeg, properties: [.compressionFactor: minQuality]) ?? Data()
+            if d.count > limit {
+                upper = scale
+            } else {
+                lower = scale
+                bestData = d
+            }
+        }
+        if let best = bestData { return (best, "jpg") }
         return nil
         #else
+        let limit = maxSizeKB * 1024
         var quality: CGFloat = 1.0
         let minQuality: CGFloat = 0.05
-        let limit = maxSizeKB * 1024
         var data = image.jpegData(compressionQuality: quality)
-        var currentImage = image
-
-        while let d = data, d.count >= limit {
-            if quality > minQuality {
-                quality = max(minQuality, quality - 0.05)
-            } else {
-                let ratio: CGFloat = 0.95
-                let newSize = CGSize(width: currentImage.size.width * ratio,
-                                     height: currentImage.size.height * ratio)
-                if newSize.width < 1 || newSize.height < 1 { break }
-                UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
-                currentImage.draw(in: CGRect(origin: .zero, size: newSize))
-                let scaled = UIGraphicsGetImageFromCurrentImageContext()
-                UIGraphicsEndImageContext()
-                guard let scaledImage = scaled else { break }
-                currentImage = scaledImage
-            }
-            data = currentImage.jpegData(compressionQuality: quality)
+        while let d = data, d.count > limit, quality > minQuality {
+            quality = max(minQuality, quality - 0.05)
+            data = image.jpegData(compressionQuality: quality)
         }
-
-        if let d = data {
+        if let d = data, d.count <= limit {
             return (d, "jpg")
         }
+        var lower: CGFloat = 0.0
+        var upper: CGFloat = 1.0
+        var bestData: Data?
+        while upper - lower > 0.01 {
+            let scale = (lower + upper) / 2
+            let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+            UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+            let scaled = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            guard let scaledImage = scaled,
+                  let d = scaledImage.jpegData(compressionQuality: minQuality) else { break }
+            if d.count > limit {
+                upper = scale
+            } else {
+                lower = scale
+                bestData = d
+            }
+        }
+        if let best = bestData { return (best, "jpg") }
         return nil
         #endif
     }
@@ -402,7 +431,7 @@ class AppViewModel: ObservableObject {
 #if canImport(Photos)
     func saveExportedImagesToPhotos(completion: @escaping (Bool) -> Void) {
         let urls = exportFileURLs
-        guard !urls.isEmpty, !isPreparingExport else {
+        guard !urls.isEmpty else {
             completion(false)
             return
         }
@@ -435,6 +464,8 @@ class AppViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     self.isExporting = false
                     completion(success)
+                    self.cleanupDirectory(self.exportCacheDirectory)
+                    self.exportCacheDirectory = nil
                 }
             }
         }
@@ -442,7 +473,7 @@ class AppViewModel: ObservableObject {
 #endif
 
     func exportAll(to directory: URL) {
-        guard let cacheDir = exportCacheDirectory, !isPreparingExport else { return }
+        guard let cacheDir = exportCacheDirectory else { return }
         isExporting = true
         exportProgress = 0
         DispatchQueue.global(qos: .userInitiated).async {
