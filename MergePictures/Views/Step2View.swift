@@ -53,6 +53,7 @@ struct Step2View: View {
                 viewModel.batchMerge()
             }
             .buttonStyle(.borderedProminent)
+            .controlSize(.large)
         }
         .padding()
         .background(
