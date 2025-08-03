@@ -29,21 +29,41 @@ struct Step3View: View {
                     Text("Export Completed!").foregroundColor(.green)
                 }
                 #else
-                Button("Share") { exportImages() }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .disabled(viewModel.isExporting)
-                Button("Save to Photos") { saveToPhotos() }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .disabled(viewModel.isExporting)
+                HStack {
+                    Spacer()
+                    VStack {
+                        Button { exportImages() } label:{
+                            Text("Share")
+                                .frame(alignment: .center)
+                                .bold()
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .disabled(viewModel.isExporting)
+                            
+                        Button { saveToPhotos() } label: {
+                            Text("Save To Photos")
+                                .frame(alignment: .center)
+                                .bold()
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .bold()
+                        .disabled(viewModel.isExporting)
+                    }
+                    .frame(maxWidth: .infinity)
+                    Spacer()
+                }
+                
                 if let msg = saveMessage {
                     Text(msg).foregroundColor(.green)
                 }
                 #endif
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-        }
+        }.padding()
 #if !os(macOS)
         .sheet(isPresented: $isSharePresented, onDismiss: {
             viewModel.clearExportCache()

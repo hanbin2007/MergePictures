@@ -46,47 +46,61 @@ struct ContentView: View {
             let showNext = viewModel.step != .export
             HStack(spacing: 16) {
                 if showBack && showNext {
-                    Button("Back") {
+                    Spacer()
+                    Button {
                         if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
                             viewModel.step = prev
                         }
+                    } label:{
+                        Text("Back")
+                            .frame(maxWidth: .infinity)
+                            .bold()
                     }
-                    .bold()
                     .buttonStyle(.bordered)
-                    .frame(width: 120)
                     .controlSize(.large)
+                    .padding(.vertical)
                     .disabled(viewModel.isExporting)
 
-                    Button("Next") {
+                    Button {
                         if let next = Step(rawValue: viewModel.step.rawValue + 1) {
                             viewModel.step = next
                         }
+                    } label:{
+                        Text("Next")
+                            .frame(maxWidth: .infinity)
+                            .bold()
                     }
-                    .bold()
                     .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
                     .controlSize(.large)
+                    .padding(.vertical)
                     .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                    Spacer()
                 } else if showBack {
-                    Button("Back") {
+                    Button {
                         if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
                             viewModel.step = prev
                         }
+                    } label:{
+                        Text("Back")
+                            .frame(maxWidth: .infinity)
+                            .bold()
                     }
-                    .bold()
+                    .padding()
                     .buttonStyle(.bordered)
-                    .frame(maxWidth: .infinity)
                     .controlSize(.large)
                     .disabled(viewModel.isExporting)
                 } else if showNext {
-                    Button("Next") {
+                    Button {
                         if let next = Step(rawValue: viewModel.step.rawValue + 1) {
                             viewModel.step = next
                         }
+                    } label: {
+                        Text("Next")
+                            .frame(maxWidth: .infinity)
+                            .bold()
                     }
-                    .bold()
                     .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
+                    .padding()
                     .controlSize(.large)
                     .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                 }
