@@ -35,6 +35,7 @@ struct ContentView: View {
     private var detailContent: some View {
         VStack(spacing: 10) {
             StepIndicator(current: $viewModel.step)
+                
             Divider()
 
             VStack(alignment: .leading, spacing: 16) {
@@ -109,6 +110,7 @@ struct ContentView: View {
             .frame(height: 50)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.top)
         #if os(macOS)
         .toolbar {
             ToolbarItem(placement: .automatic) {

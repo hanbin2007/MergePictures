@@ -97,12 +97,16 @@ struct Step1View: View {
         .formStyle(.grouped)
 #else
         VStack(alignment: .leading) {
-            Button("Add Images") {
+            Button {
                 showImporter = true
+            } label: {
+                Text("Add Images").frame(maxWidth: .infinity)
             }
+            .padding()
+            .buttonStyle(.borderedProminent)
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text("Basic Settings").bold().padding(.top)
+            Text("Basic Settings").bold()
 
             Stepper("Merge count: \(viewModel.mergeCount)", value: $viewModel.mergeCount, in: 1...10)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -124,7 +128,7 @@ struct Step1View: View {
 
             Spacer()
         }
-        .padding(.leading)
+        .padding(.horizontal)
 #endif
     }
 
