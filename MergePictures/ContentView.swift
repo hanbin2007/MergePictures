@@ -46,7 +46,7 @@ struct ContentView: View {
             let showNext = viewModel.step != .export
             GeometryReader { geo in
                 HStack(spacing: 16) {
-                    if showBack {
+                    if showBack && showNext {
                         Button("Back") {
                             if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
                                 viewModel.step = prev
@@ -54,12 +54,10 @@ struct ContentView: View {
                         }
                         .bold()
                         .buttonStyle(.bordered)
+                        .frame(maxWidth: .infinity)
                         .controlSize(.large)
-                        .frame(width: showNext ? geo.size.width * 0.4 : geo.size.width)
                         .disabled(viewModel.isExporting)
-                    }
 
-                    if showNext {
                         Button("Next") {
                             if let next = Step(rawValue: viewModel.step.rawValue + 1) {
                                 viewModel.step = next
@@ -67,9 +65,35 @@ struct ContentView: View {
                         }
                         .bold()
                         .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity)
                         .controlSize(.large)
-                        .frame(width: showBack ? geo.size.width * 0.6 : geo.size.width)
                         .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                    } else if showBack {
+//                        Spacer()
+                        Button("Back") {
+                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                                viewModel.step = prev
+                            }
+                        }
+                        .bold()
+                        .buttonStyle(.bordered)
+                        .frame(maxWidth: .infinity)
+                        .controlSize(.large)
+                        .disabled(viewModel.isExporting)
+//                        Spacer()
+                    } else if showNext {
+//                        Spacer()
+                        Button("Next") {
+                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                                viewModel.step = next
+                            }
+                        }
+                        .bold()
+                        .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity)
+                        .controlSize(.large)
+                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+//                        Spacer()
                     }
                 }
             }
