@@ -44,63 +44,71 @@ struct ContentView: View {
 
             let showBack = viewModel.step != .selectImages
             let showNext = viewModel.step != .export
-            GeometryReader { geo in
-                HStack(spacing: 16) {
-                    if showBack && showNext {
-                        Button("Back") {
-                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                                viewModel.step = prev
-                            }
+            HStack(spacing: 16) {
+                if showBack && showNext {
+                    Spacer()
+                    Button {
+                        if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                            viewModel.step = prev
                         }
-                        .bold()
-                        .buttonStyle(.bordered)
-                        .frame(maxWidth: .infinity)
-                        .controlSize(.large)
-                        .disabled(viewModel.isExporting)
-
-                        Button("Next") {
-                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                                viewModel.step = next
-                            }
-                        }
-                        .bold()
-                        .buttonStyle(.borderedProminent)
-                        .frame(maxWidth: .infinity)
-                        .controlSize(.large)
-                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
-                    } else if showBack {
-//                        Spacer()
-                        Button("Back") {
-                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                                viewModel.step = prev
-                            }
-                        }
-                        .bold()
-                        .buttonStyle(.bordered)
-                        .frame(maxWidth: .infinity)
-                        .controlSize(.large)
-                        .disabled(viewModel.isExporting)
-//                        Spacer()
-                    } else if showNext {
-//                        Spacer()
-                        Button("Next") {
-                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                                viewModel.step = next
-                            }
-                        }
-                        .bold()
-                        .buttonStyle(.borderedProminent)
-                        .frame(maxWidth: .infinity)
-                        .controlSize(.large)
-                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
-//                        Spacer()
+                    } label:{
+                        Text("Back")
+                            .frame(maxWidth: .infinity)
+                            .bold()
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .padding(.vertical)
+                    .disabled(viewModel.isExporting)
+
+                    Button {
+                        if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                            viewModel.step = next
+                        }
+                    } label:{
+                        Text("Next")
+                            .frame(maxWidth: .infinity)
+                            .bold()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .padding(.vertical)
+                    .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                    Spacer()
+                } else if showBack {
+                    Button {
+                        if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                            viewModel.step = prev
+                        }
+                    } label:{
+                        Text("Back")
+                            .frame(maxWidth: .infinity)
+                            .bold()
+                    }
+                    .padding()
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .disabled(viewModel.isExporting)
+                } else if showNext {
+                    Button {
+                        if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                            viewModel.step = next
+                        }
+                    } label: {
+                        Text("Next")
+                            .frame(maxWidth: .infinity)
+                            .bold()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .padding()
+                    .controlSize(.large)
+                    .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                 }
             }
+            .frame(maxWidth: .infinity)
             .frame(height: 50)
         }
-//        .padding()
-        .frame(maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         #if os(macOS)
         .toolbar {
             ToolbarItem(placement: .automatic) {
