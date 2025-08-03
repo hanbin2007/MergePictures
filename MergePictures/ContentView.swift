@@ -42,31 +42,38 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-            HStack(spacing: 16) {
-                if viewModel.step != .selectImages {
-                    Button("Back") {
-                        if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                            viewModel.step = prev
+            let showBack = viewModel.step != .selectImages
+            let showNext = viewModel.step != .export
+            GeometryReader { geo in
+                HStack(spacing: 16) {
+                    if showBack {
+                        Button("Back") {
+                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                                viewModel.step = prev
+                            }
                         }
+                        .bold()
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .frame(width: showNext ? geo.size.width * 0.4 : geo.size.width)
+                        .disabled(viewModel.isExporting)
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .frame(maxWidth: .infinity)
-                    .disabled(viewModel.isExporting)
-                }
 
-                if viewModel.step != .export {
-                    Button("Next") {
-                        if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                            viewModel.step = next
+                    if showNext {
+                        Button("Next") {
+                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                                viewModel.step = next
+                            }
                         }
+                        .bold()
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .frame(width: showBack ? geo.size.width * 0.6 : geo.size.width)
+                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .frame(maxWidth: .infinity)
-                    .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                 }
             }
+            .frame(height: 50)
         }
         .padding()
         .frame(maxHeight: .infinity)
