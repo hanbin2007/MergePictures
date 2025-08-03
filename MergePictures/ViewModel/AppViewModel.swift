@@ -3,6 +3,8 @@ import Combine
 #if os(iOS)
 import UIKit
 import PhotosUI
+#endif
+#if canImport(Photos)
 import Photos
 #endif
 
@@ -458,7 +460,7 @@ class AppViewModel: ObservableObject {
                     PHPhotoLibrary.shared().performChanges({
                         PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: url)
                     }) { s, _ in
-                        success = success && s
+                        success = success && (s != false)
                         group.leave()
                     }
                     group.wait()
