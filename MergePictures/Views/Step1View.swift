@@ -75,12 +75,16 @@ struct Step1View: View {
 
             Section("Basic Settings") {
                 Stepper("Merge count: \(viewModel.mergeCount)", value: $viewModel.mergeCount, in: 1...10)
-                Picker("Direction", selection: $viewModel.direction) {
-                    ForEach(MergeDirection.allCases) { dir in
-                        Text(dir.rawValue.capitalized).tag(dir)
+                HStack {
+                    Text("Direction")
+                    
+                    Picker("Direction", selection: $viewModel.direction) {
+                        ForEach(MergeDirection.allCases) { dir in
+                            Text(dir.rawValue.capitalized).tag(dir)
+                        }
                     }
+                    .pickerStyle(SegmentedPickerStyle())
                 }
-                .pickerStyle(SegmentedPickerStyle())
             }
 
             Section("Advanced Settings") {

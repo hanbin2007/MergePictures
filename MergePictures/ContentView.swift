@@ -68,7 +68,7 @@ struct ContentView: View {
                 }
             }
         }
-        .padding()
+//        .padding()
         .frame(maxHeight: .infinity)
         #if os(macOS)
         .toolbar {
