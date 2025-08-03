@@ -94,8 +94,7 @@ struct ContentView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 50)
         }
-//        .padding()
-        .frame(maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         #if os(macOS)
         .toolbar {
             ToolbarItem(placement: .automatic) {
