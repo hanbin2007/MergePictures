@@ -18,11 +18,8 @@ struct Step1View: View {
                 previewSection
                     .frame(height: proxy.size.height * 0.6)
                 Divider()
-                ScrollView {
-                    settingsSection
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .frame(height: proxy.size.height * 0.4)
+                settingsSection
+                    .frame(height: proxy.size.height * 0.4)
             }
         }
         .onChange(of: selectedItems) { newItems in
@@ -67,18 +64,43 @@ struct Step1View: View {
     }
 
     private var settingsSection: some View {
-        VStack(alignment: .leading) {
 #if os(iOS)
-            PhotosPicker(selection: $selectedItems, maxSelectionCount: 0, matching: .images) {
-                Text("Add Images")
+        Form {
+            Section {
+                PhotosPicker(selection: $selectedItems, maxSelectionCount: 0, matching: .images) {
+                    Label("Add Images", systemImage: "photo.on.rectangle.angled")
+                }
+                .controlSize(.large)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Section("Basic Settings") {
+                Stepper("Merge count: \(viewModel.mergeCount)", value: $viewModel.mergeCount, in: 1...10)
+                HStack {
+                    Text("Direction")
+                    
+                    Picker("Direction", selection: $viewModel.direction) {
+                        ForEach(MergeDirection.allCases) { dir in
+                            Text(dir.rawValue.capitalized).tag(dir)
+                        }
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                }
+            }
+
+            Section("Advanced Settings") {
+                Button("Swap Order") {
+                    viewModel.rotateImages()
+                }
+                .controlSize(.large)
+            }
+        }
+        .formStyle(.grouped)
 #else
+        VStack(alignment: .leading) {
             Button("Add Images") {
                 showImporter = true
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-#endif
 
             Text("Basic Settings").bold().padding(.top)
 
@@ -101,7 +123,9 @@ struct Step1View: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Spacer()
-        }.padding(.leading)
+        }
+        .padding(.leading)
+#endif
     }
 
     private func previewImage(for image: PlatformImage, in proxy: GeometryProxy) -> some View {

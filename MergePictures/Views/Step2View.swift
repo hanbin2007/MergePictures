@@ -31,7 +31,7 @@ struct Step2View: View {
                     .animation(.default, value: viewModel.step2PreviewScale)
                 }
             }
-        }
+        }.padding()
         .onAppear {
             if viewModel.mergedImageURLs.isEmpty {
                 viewModel.batchMerge()
@@ -52,7 +52,9 @@ struct Step2View: View {
             Button("Reload Preview") {
                 viewModel.batchMerge()
             }
+            .bold()
             .buttonStyle(.borderedProminent)
+            .controlSize(.large)
         }
         .padding()
         .background(

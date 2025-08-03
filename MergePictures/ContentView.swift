@@ -42,27 +42,64 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-            HStack {
-                if viewModel.step != .selectImages {
-                    Button("Back") {
-                        if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                            viewModel.step = prev
+            let showBack = viewModel.step != .selectImages
+            let showNext = viewModel.step != .export
+            GeometryReader { geo in
+                HStack(spacing: 16) {
+                    if showBack && showNext {
+                        Button("Back") {
+                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                                viewModel.step = prev
+                            }
                         }
-                    }
-                    .disabled(viewModel.isExporting)
-                }
-                Spacer()
-                if viewModel.step != .export {
-                    Button("Next") {
-                        if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                            viewModel.step = next
+                        .bold()
+                        .buttonStyle(.bordered)
+                        .frame(maxWidth: .infinity)
+                        .controlSize(.large)
+                        .disabled(viewModel.isExporting)
+
+                        Button("Next") {
+                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                                viewModel.step = next
+                            }
                         }
+                        .bold()
+                        .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity)
+                        .controlSize(.large)
+                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                    } else if showBack {
+//                        Spacer()
+                        Button("Back") {
+                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                                viewModel.step = prev
+                            }
+                        }
+                        .bold()
+                        .buttonStyle(.bordered)
+                        .frame(maxWidth: .infinity)
+                        .controlSize(.large)
+                        .disabled(viewModel.isExporting)
+//                        Spacer()
+                    } else if showNext {
+//                        Spacer()
+                        Button("Next") {
+                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                                viewModel.step = next
+                            }
+                        }
+                        .bold()
+                        .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity)
+                        .controlSize(.large)
+                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+//                        Spacer()
                     }
-                    .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                 }
             }
+            .frame(height: 50)
         }
-        .padding()
+//        .padding()
         .frame(maxHeight: .infinity)
         #if os(macOS)
         .toolbar {
