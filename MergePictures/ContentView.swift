@@ -44,59 +44,54 @@ struct ContentView: View {
 
             let showBack = viewModel.step != .selectImages
             let showNext = viewModel.step != .export
-            GeometryReader { geo in
-                HStack(spacing: 16) {
-                    if showBack && showNext {
-                        Button("Back") {
-                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                                viewModel.step = prev
-                            }
+            HStack(spacing: 16) {
+                if showBack && showNext {
+                    Button("Back") {
+                        if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                            viewModel.step = prev
                         }
-                        .bold()
-                        .buttonStyle(.bordered)
-                        .frame(maxWidth: .infinity)
-                        .controlSize(.large)
-                        .disabled(viewModel.isExporting)
-
-                        Button("Next") {
-                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                                viewModel.step = next
-                            }
-                        }
-                        .bold()
-                        .buttonStyle(.borderedProminent)
-                        .frame(maxWidth: .infinity)
-                        .controlSize(.large)
-                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
-                    } else if showBack {
-//                        Spacer()
-                        Button("Back") {
-                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                                viewModel.step = prev
-                            }
-                        }
-                        .bold()
-                        .buttonStyle(.bordered)
-                        .frame(maxWidth: .infinity)
-                        .controlSize(.large)
-                        .disabled(viewModel.isExporting)
-//                        Spacer()
-                    } else if showNext {
-//                        Spacer()
-                        Button("Next") {
-                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                                viewModel.step = next
-                            }
-                        }
-                        .bold()
-                        .buttonStyle(.borderedProminent)
-                        .frame(maxWidth: .infinity)
-                        .controlSize(.large)
-                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
-//                        Spacer()
                     }
+                    .bold()
+                    .buttonStyle(.bordered)
+                    .frame(width: 120)
+                    .controlSize(.large)
+                    .disabled(viewModel.isExporting)
+
+                    Button("Next") {
+                        if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                            viewModel.step = next
+                        }
+                    }
+                    .bold()
+                    .buttonStyle(.borderedProminent)
+                    .frame(maxWidth: .infinity)
+                    .controlSize(.large)
+                    .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                } else if showBack {
+                    Button("Back") {
+                        if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                            viewModel.step = prev
+                        }
+                    }
+                    .bold()
+                    .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity)
+                    .controlSize(.large)
+                    .disabled(viewModel.isExporting)
+                } else if showNext {
+                    Button("Next") {
+                        if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                            viewModel.step = next
+                        }
+                    }
+                    .bold()
+                    .buttonStyle(.borderedProminent)
+                    .frame(maxWidth: .infinity)
+                    .controlSize(.large)
+                    .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                 }
             }
+            .frame(maxWidth: .infinity)
             .frame(height: 50)
         }
 //        .padding()
