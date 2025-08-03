@@ -42,22 +42,28 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-            HStack {
+            HStack(spacing: 16) {
                 if viewModel.step != .selectImages {
                     Button("Back") {
                         if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
                             viewModel.step = prev
                         }
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .frame(maxWidth: .infinity)
                     .disabled(viewModel.isExporting)
                 }
-                Spacer()
+
                 if viewModel.step != .export {
                     Button("Next") {
                         if let next = Step(rawValue: viewModel.step.rawValue + 1) {
                             viewModel.step = next
                         }
                     }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .frame(maxWidth: .infinity)
                     .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                 }
             }

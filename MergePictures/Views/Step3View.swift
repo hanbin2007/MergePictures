@@ -22,14 +22,20 @@ struct Step3View: View {
                 }
                 #if os(macOS)
                 Button("Export") { exportImages() }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .disabled(viewModel.isExporting)
                 if viewModel.exportProgress == 1 && !viewModel.isExporting {
                     Text("Export Completed!").foregroundColor(.green)
                 }
                 #else
                 Button("Share") { exportImages() }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .disabled(viewModel.isExporting)
                 Button("Save to Photos") { saveToPhotos() }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                     .disabled(viewModel.isExporting)
                 if let msg = saveMessage {
                     Text(msg).foregroundColor(.green)
