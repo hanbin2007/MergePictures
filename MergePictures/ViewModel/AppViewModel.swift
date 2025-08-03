@@ -297,11 +297,14 @@ class AppViewModel: ObservableObject {
                                 ext = comp.1
                             } else {
                                 #if os(macOS)
-                                data = result.tiffRepresentation
-                                ext = "tiff"
+                                if let tiff = result.tiffRepresentation,
+                                   let rep = NSBitmapImageRep(data: tiff) {
+                                    data = rep.representation(using: .jpeg, properties: [.compressionFactor: 1.0])
+                                }
+                                ext = "jpg"
                                 #else
-                                data = result.pngData()
-                                ext = "png"
+                                data = result.jpegData(compressionQuality: 1.0)
+                                ext = "jpg"
                                 #endif
                             }
                             if let d = data {
