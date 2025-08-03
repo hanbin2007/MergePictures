@@ -335,19 +335,22 @@ class AppViewModel: ObservableObject {
         result.unlockFocus()
         return result
         #else
-        UIGraphicsBeginImageContextWithOptions(totalSize, false, 0)
-        var current = CGPoint.zero
-        for image in images {
-            image.draw(at: current)
-            switch direction {
-            case .horizontal:
-                current.x += image.size.width
-            case .vertical:
-                current.y += image.size.height
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+        let renderer = UIGraphicsImageRenderer(size: totalSize, format: format)
+        let result = renderer.image { _ in
+            var current = CGPoint.zero
+            for image in images {
+                image.draw(at: current)
+                switch direction {
+                case .horizontal:
+                    current.x += image.size.width
+                case .vertical:
+                    current.y += image.size.height
+                }
             }
         }
-        let result = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
         return result
         #endif
     }
@@ -410,12 +413,14 @@ class AppViewModel: ObservableObject {
         while upper - lower > 0.01 {
             let scale = (lower + upper) / 2
             let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
-            UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
-            image.draw(in: CGRect(origin: .zero, size: newSize))
-            let scaled = UIGraphicsGetImageFromCurrentImageContext()
-            UIGraphicsEndImageContext()
-            guard let scaledImage = scaled,
-                  let d = scaledImage.jpegData(compressionQuality: minQuality) else { break }
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1
+            format.opaque = false
+            let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
+            let scaled = renderer.image { _ in
+                image.draw(in: CGRect(origin: .zero, size: newSize))
+            }
+            guard let d = scaled.jpegData(compressionQuality: minQuality) else { break }
             if d.count > limit {
                 upper = scale
             } else {
