@@ -20,28 +20,24 @@ public extension Image {
 }
 
 public func loadPlatformImage(from url: URL, maxDimension: CGFloat? = nil) -> PlatformImage? {
+    guard let src = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+    var options: [CFString: Any] = [
+        kCGImageSourceCreateThumbnailFromImageAlways: true,
+        kCGImageSourceCreateThumbnailWithTransform: true
+    ]
     if let max = maxDimension {
-        let options: [CFString: Any] = [
-            kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceCreateThumbnailWithTransform: true,
-            kCGImageSourceThumbnailMaxPixelSize: max
-        ]
-        guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
-              let cg = CGImageSourceCreateThumbnailAtIndex(src, 0, options as CFDictionary) else {
-            return nil
-        }
-        #if os(macOS)
-        return NSImage(cgImage: cg, size: .zero)
-        #else
-        return UIImage(cgImage: cg)
-        #endif
-    } else {
-        #if os(macOS)
-        return NSImage(contentsOf: url)
-        #else
-        return UIImage(contentsOfFile: url.path)
-        #endif
+        options[kCGImageSourceThumbnailMaxPixelSize] = max
+    } else if let props = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any],
+              let width = props[kCGImagePropertyPixelWidth] as? CGFloat,
+              let height = props[kCGImagePropertyPixelHeight] as? CGFloat {
+        options[kCGImageSourceThumbnailMaxPixelSize] = max(width, height)
     }
+    guard let cg = CGImageSourceCreateThumbnailAtIndex(src, 0, options as CFDictionary) else { return nil }
+    #if os(macOS)
+    return NSImage(cgImage: cg, size: .zero)
+    #else
+    return UIImage(cgImage: cg)
+    #endif
 }
 
 public func platformImageNamed(_ name: String) -> PlatformImage? {
