@@ -65,6 +65,7 @@ struct Step3View: View {
                 #endif
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
         }.padding()
 #if !os(macOS)
         .sheet(isPresented: $isSharePresented, onDismiss: {
