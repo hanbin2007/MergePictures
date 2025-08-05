@@ -11,10 +11,21 @@
 		FD74EF542E3DD0B200ED2B65 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = FD74EF532E3DD0AB00ED2B65 /* .gitignore */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		FDAB99922E41991200DE7EF6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FD75952E2E362B400048D3DA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FD7595352E362B400048D3DA;
+			remoteInfo = MergePictures;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		FD2F85942E3DE0EB003285BA /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		FD74EF532E3DD0AB00ED2B65 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		FD7595362E362B400048D3DA /* MergePictures.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MergePictures.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FDAB998E2E41991200DE7EF6 /* MergePicturesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MergePicturesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -27,6 +38,13 @@
 
 /* Begin PBXFrameworksBuildPhase section */
 		FD7595332E362B400048D3DA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FDAB998B2E41991200DE7EF6 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -50,6 +68,7 @@
 			isa = PBXGroup;
 			children = (
 				FD7595362E362B400048D3DA /* MergePictures.app */,
+				FDAB998E2E41991200DE7EF6 /* MergePicturesTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -79,6 +98,26 @@
 			productReference = FD7595362E362B400048D3DA /* MergePictures.app */;
 			productType = "com.apple.product-type.application";
 		};
+		FDAB998D2E41991200DE7EF6 /* MergePicturesTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FDAB99942E41991200DE7EF6 /* Build configuration list for PBXNativeTarget "MergePicturesTests" */;
+			buildPhases = (
+				FDAB998A2E41991200DE7EF6 /* Sources */,
+				FDAB998B2E41991200DE7EF6 /* Frameworks */,
+				FDAB998C2E41991200DE7EF6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FDAB99932E41991200DE7EF6 /* PBXTargetDependency */,
+			);
+			name = MergePicturesTests;
+			packageProductDependencies = (
+			);
+			productName = MergePicturesTests;
+			productReference = FDAB998E2E41991200DE7EF6 /* MergePicturesTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -86,11 +125,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1620;
+				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
 					FD7595352E362B400048D3DA = {
 						CreatedOnToolsVersion = 16.2;
+					};
+					FDAB998D2E41991200DE7EF6 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = FD7595352E362B400048D3DA;
 					};
 				};
 			};
@@ -109,6 +152,7 @@
 			projectRoot = "";
 			targets = (
 				FD7595352E362B400048D3DA /* MergePictures */,
+				FDAB998D2E41991200DE7EF6 /* MergePicturesTests */,
 			);
 		};
 /* End PBXProject section */
@@ -123,6 +167,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FDAB998C2E41991200DE7EF6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -133,7 +184,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FDAB998A2E41991200DE7EF6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		FDAB99932E41991200DE7EF6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FD7595352E362B400048D3DA /* MergePictures */;
+			targetProxy = FDAB99922E41991200DE7EF6 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		FD7595432E362B410048D3DA /* Debug */ = {
@@ -330,6 +396,52 @@
 			};
 			name = Release;
 		};
+		FDAB99952E41991200DE7EF6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LH766G25XS;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = binbinc.MergePicturesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MergePictures.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MergePictures";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Debug;
+		};
+		FDAB99962E41991200DE7EF6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LH766G25XS;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = binbinc.MergePicturesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MergePictures.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MergePictures";
+				XROS_DEPLOYMENT_TARGET = 2.5;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -347,6 +459,15 @@
 			buildConfigurations = (
 				FD7595462E362B410048D3DA /* Debug */,
 				FD7595472E362B410048D3DA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FDAB99942E41991200DE7EF6 /* Build configuration list for PBXNativeTarget "MergePicturesTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FDAB99952E41991200DE7EF6 /* Debug */,
+				FDAB99962E41991200DE7EF6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
