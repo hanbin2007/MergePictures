@@ -16,10 +16,10 @@ struct Step1View: View {
         GeometryReader { proxy in
             VStack(spacing: 0) {
                 previewSection
-                    .frame(height: proxy.size.height * 0.6)
+                    .frame(height: proxy.size.height * 0.5)
                 Divider()
                 settingsSection
-                    .frame(height: proxy.size.height * 0.4)
+                    .frame(height: proxy.size.height * 0.5)
             }
         }
         .onChange(of: selectedItems) { newItems in
@@ -77,13 +77,14 @@ struct Step1View: View {
                 Stepper("Merge count: \(viewModel.mergeCount)", value: $viewModel.mergeCount, in: 1...10)
                 HStack {
                     Text("Direction")
-                    
+                    Spacer()
                     Picker("Direction", selection: $viewModel.direction) {
                         ForEach(MergeDirection.allCases) { dir in
                             Text(dir.rawValue.capitalized).tag(dir)
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())
+                    .frame(maxWidth: 200, alignment: .trailing)
                 }
             }
 
