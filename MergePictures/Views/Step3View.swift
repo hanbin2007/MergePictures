@@ -16,6 +16,8 @@ struct Step3View: View {
         ScrollView {
             VStack(alignment: .leading) {
                 Stepper("Max KB: \(viewModel.maxFileSizeKB)", value: $viewModel.maxFileSizeKB, in: 100...10000, step: 100)
+                    .disabled(!viewModel.enableCompression)
+                Toggle("Compress Output", isOn: $viewModel.enableCompression)
                 if viewModel.isExporting {
                     ProgressView(value: viewModel.exportProgress)
                         .padding(.vertical)
