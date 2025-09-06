@@ -48,62 +48,130 @@ struct ContentView: View {
             HStack(spacing: 16) {
                 if showBack && showNext {
                     Spacer()
-                    Button {
-                        if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                            viewModel.step = prev
+                    if #available(iOS 26.0, *) {
+                        Button {
+                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                                viewModel.step = prev
+                            }
+                        } label:{
+                            Text("Back")
+                                .frame(maxWidth: .infinity)
+                                .bold()
                         }
-                    } label:{
-                        Text("Back")
-                            .frame(maxWidth: .infinity)
-                            .bold()
+                        .buttonStyle(.glass)
+                        .controlSize(.large)
+                        .padding(.vertical)
+                        .disabled(viewModel.isExporting)
+                    } else {
+                        // Fallback on earlier versions
+                        Button {
+                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                                viewModel.step = prev
+                            }
+                        } label:{
+                            Text("Back")
+                                .frame(maxWidth: .infinity)
+                                .bold()
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .padding(.vertical)
+                        .disabled(viewModel.isExporting)
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .padding(.vertical)
-                    .disabled(viewModel.isExporting)
 
-                    Button {
-                        if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                            viewModel.step = next
+                    if #available(iOS 26.0, *) {
+                        Button {
+                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                                viewModel.step = next
+                            }
+                        } label:{
+                            Text("Next")
+                                .frame(maxWidth: .infinity)
+                                .bold()
                         }
-                    } label:{
-                        Text("Next")
-                            .frame(maxWidth: .infinity)
-                            .bold()
+                        .buttonStyle(.glassProminent)
+                        .controlSize(.large)
+                        .padding(.vertical)
+                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                    } else {
+                        // Fallback on earlier versions
+                        Button {
+                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                                viewModel.step = next
+                            }
+                        } label:{
+                            Text("Next")
+                                .frame(maxWidth: .infinity)
+                                .bold()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .padding(.vertical)
+                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .padding(.vertical)
-                    .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                     Spacer()
                 } else if showBack {
-                    Button {
-                        if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                            viewModel.step = prev
+                    if #available(iOS 26.0, *) {
+                        Button {
+                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                                viewModel.step = prev
+                            }
+                        } label:{
+                            Text("Back")
+                                .frame(maxWidth: .infinity)
+                                .bold()
                         }
-                    } label:{
-                        Text("Back")
-                            .frame(maxWidth: .infinity)
-                            .bold()
+                        .padding()
+                        .buttonStyle(.glass)
+                        .controlSize(.large)
+                        .disabled(viewModel.isExporting)
+                    } else {
+                        // Fallback on earlier versions
+                        Button {
+                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                                viewModel.step = prev
+                            }
+                        } label:{
+                            Text("Back")
+                                .frame(maxWidth: .infinity)
+                                .bold()
+                        }
+                        .padding()
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .disabled(viewModel.isExporting)
                     }
-                    .padding()
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .disabled(viewModel.isExporting)
                 } else if showNext {
-                    Button {
-                        if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                            viewModel.step = next
+                    if #available(iOS 26.0, *) {
+                        Button {
+                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                                viewModel.step = next
+                            }
+                        } label: {
+                            Text("Next")
+                                .frame(maxWidth: .infinity)
+                                .bold()
                         }
-                    } label: {
-                        Text("Next")
-                            .frame(maxWidth: .infinity)
-                            .bold()
+                        .buttonStyle(.glassProminent)
+                        .padding()
+                        .controlSize(.large)
+                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
+                    } else {
+                        // Fallback on earlier versions
+                        Button {
+                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                                viewModel.step = next
+                            }
+                        } label: {
+                            Text("Next")
+                                .frame(maxWidth: .infinity)
+                                .bold()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding()
+                        .controlSize(.large)
+                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .padding()
-                    .controlSize(.large)
-                    .disabled(viewModel.isMerging || viewModel.images.isEmpty)
                 }
             }
             .frame(maxWidth: .infinity)
