@@ -52,7 +52,7 @@ struct Step1View: View {
                             previewImage(for: img, in: proxy)
                         }
                     } else {
-                        Text("No Preview")
+                        noPreviewView
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
@@ -61,6 +61,28 @@ struct Step1View: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
 //        .padding(.bottom)
+    }
+
+    private var noPreviewView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "photo.stack")
+                .font(.system(size: 40))
+                .foregroundColor(.accentColor)
+            Text("No Preview")
+                .font(.headline)
+                .bold()
+            Text(LocalizedStringKey("No Preview Detail 1"))
+                .multilineTextAlignment(.center)
+            Text(LocalizedStringKey("No Preview Detail 2"))
+                .multilineTextAlignment(.center)
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.accentColor.opacity(0.1))
+        )
+        .frame(maxWidth: 360)
+        .padding()
     }
 
     private var settingsSection: some View {

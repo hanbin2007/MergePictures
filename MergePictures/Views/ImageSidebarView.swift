@@ -70,7 +70,7 @@ private struct SidebarRow: View {
                 .scaledToFit()
                 .frame(width: 40, height: 40)
                 .cornerRadius(4)
-            Text(item.url.lastPathComponent)
+            Text(item.displayName)
                 .lineLimit(1)
             Spacer()
             Button(action: deleteAction) {
@@ -101,7 +101,7 @@ private struct SidebarRow: View {
                 .scaledToFit()
                 .frame(width: 40, height: 40)
                 .cornerRadius(4)
-            Text(item.url.lastPathComponent)
+            Text(item.displayName)
                 .lineLimit(1)
             Spacer()
         }

@@ -36,3 +36,6 @@
 "Enable to limit each merged image to a target size." = "Enable to limit each merged image to a target size.";
 "Target file size per merged image (KB). Applies when compression is on." = "Target file size per merged image (KB). Applies when compression is on.";
 "Generate merged files and save them to a selected folder." = "Generate merged files and save them to a selected folder.";
+"No Preview Detail 1" = "Add images below to see a live merged preview of your first group of images here.";
+"No Preview Detail 2" = "Adjust merge count and direction; the preview updates automatically.";
+"Reload Preview Detail" = "Tap Reload Preview to generate the merged thumbnails.";

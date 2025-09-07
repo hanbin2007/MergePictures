@@ -1,10 +1,14 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 struct ContentView: View {
     @StateObject private var viewModel: AppViewModel
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var hSizeClass
     #endif
+    @State private var showSidebarSheet: Bool = false
 
     init(viewModel: AppViewModel = AppViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -178,12 +182,64 @@ struct ContentView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 //        .padding(.top, 0)
         .safeAreaInset(edge: .top) {
-            VStack(spacing: 10) {
-                StepIndicator(current: $viewModel.step)
+            VStack(spacing: 8) {
+                ZStack {
+                    // Centered step indicator
+                    StepIndicator(current: $viewModel.step)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    // Left-aligned button (iOS compact only)
+                    #if os(iOS)
+                    HStack {
+                        if hSizeClass == .compact && !(isiOS26OrNewer && isPadDevice) {
+                            Button {
+                                showSidebarSheet = true
+                            } label: {
+                                Group {
+                                    if #available(iOS 17.0, *) {
+                                        Image(systemName: "photo.stack")
+                                    } else {
+                                        Image(systemName: "square.grid.2x2")
+                                    }
+                                }
+                                .imageScale(.large)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        Spacer()
+                    }
+                    #endif
+                }
+                .padding(.horizontal)
                 Divider()
             }
             .background(.bar)
         }
+        #if os(iOS)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                if isiOS26OrNewer && isPadDevice && hSizeClass == .compact {
+                    Button {
+                        showSidebarSheet = true
+                    } label: {
+                        if #available(iOS 17.0, *) {
+                            Image(systemName: "photo.stack")
+                        } else {
+                            Image(systemName: "square.grid.2x2")
+                        }
+                    }
+                }
+            }
+        }
+        #endif
+        #if os(iOS)
+        .sheet(isPresented: $showSidebarSheet) {
+            NavigationStack {
+                ImageSidebarView(viewModel: viewModel)
+                    .navigationTitle("Images")
+                    .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { showSidebarSheet = false } } }
+            }
+        }
+        #endif
         #if os(macOS)
         .toolbar {
             ToolbarItem(placement: .automatic) {
@@ -197,6 +253,15 @@ struct ContentView: View {
         }
         #endif
     }
+
+#if os(iOS)
+    private var isPadDevice: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad
+    }
+    private var isiOS26OrNewer: Bool {
+        if #available(iOS 26.0, *) { return true } else { return false }
+    }
+#endif
 
     private var previewScaleBinding: Binding<CGFloat> {
         switch viewModel.step {

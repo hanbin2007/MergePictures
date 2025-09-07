@@ -46,9 +46,12 @@ struct Step2View: View {
                 .foregroundColor(.accentColor)
             Text("Preview is empty")
                 .font(.headline)
+                .bold()
             Text("Preview need to be regenerated after rearranging images")
                 .multilineTextAlignment(.center)
-            
+            Text(LocalizedStringKey("Reload Preview Detail"))
+                .multilineTextAlignment(.center)
+
             Button("Reload Preview") {
                 viewModel.batchMerge()
             }

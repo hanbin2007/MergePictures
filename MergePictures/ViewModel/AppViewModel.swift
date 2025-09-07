@@ -58,6 +58,12 @@ class AppViewModel: ObservableObject {
     private var mergeCacheDirectory: URL?
     private var exportCacheDirectory: URL?
     private var importCacheDirectory: URL?
+    private lazy var importDateFormatter: DateFormatter = {
+        let df = DateFormatter()
+        df.locale = Locale(identifier: "en_US_POSIX")
+        df.dateFormat = "yyyyMMdd-HHmmss-SSS"
+        return df
+    }()
 
     var exportFileURLs: [URL] {
         guard let cacheDir = exportCacheDirectory else { return [] }
@@ -195,12 +201,18 @@ class AppViewModel: ObservableObject {
                 }
             }
             guard let preview = loadPlatformImage(from: url, maxDimension: 1024) else { return nil }
-            return ImageItem(url: url, preview: preview)
+            let addedAt = Date()
+            let ext = url.pathExtension.isEmpty ? "img" : url.pathExtension
+            let name = "photo-\(importDateFormatter.string(from: addedAt)).\(ext)"
+            return ImageItem(url: url, preview: preview, addedDate: addedAt, displayName: name)
         }
         #else
         let newItems = urls.compactMap { url -> ImageItem? in
             guard let preview = loadPlatformImage(from: url, maxDimension: 1024) else { return nil }
-            return ImageItem(url: url, preview: preview)
+            let addedAt = Date()
+            let ext = url.pathExtension.isEmpty ? "img" : url.pathExtension
+            let name = "photo-\(importDateFormatter.string(from: addedAt)).\(ext)"
+            return ImageItem(url: url, preview: preview, addedDate: addedAt, displayName: name)
         }
         #endif
         images.append(contentsOf: newItems)
@@ -217,10 +229,12 @@ class AppViewModel: ObservableObject {
         guard let dir = importCacheDirectory else { return }
         for item in items {
             if let data = try? await item.loadTransferable(type: Data.self) {
-                let url = dir.appendingPathComponent("photo-\(UUID().uuidString).img")
+                let addedAt = Date()
+                let fileName = "photo-\(importDateFormatter.string(from: addedAt)).img"
+                let url = dir.appendingPathComponent(fileName)
                 try? data.write(to: url)
                 if let preview = loadPlatformImage(from: url, maxDimension: 1024) {
-                    newItems.append(ImageItem(url: url, preview: preview))
+                    newItems.append(ImageItem(url: url, preview: preview, addedDate: addedAt, displayName: fileName))
                 }
             }
         }
@@ -254,8 +268,12 @@ class AppViewModel: ObservableObject {
     /// Sorts images by filename using Finder-like logic respecting the current sort order.
     func sortImages() {
         images.sort { a, b in
-            let result = a.url.lastPathComponent.localizedStandardCompare(b.url.lastPathComponent)
-            return sortAscending ? result == .orderedAscending : result == .orderedDescending
+            let cmp = a.addedDate.compare(b.addedDate)
+            if cmp != .orderedSame {
+                return sortAscending ? (cmp == .orderedAscending) : (cmp == .orderedDescending)
+            }
+            // tie-breaker for identical timestamps
+            return a.id.uuidString < b.id.uuidString
         }
         clearMergedResults()
     }
@@ -551,9 +569,15 @@ class AppViewModel: ObservableObject {
 extension AppViewModel {
     static var preview: AppViewModel {
         let vm = AppViewModel()
+        let df = DateFormatter()
+        df.locale = Locale(identifier: "en_US_POSIX")
+        df.dateFormat = "yyyyMMdd-HHmmss-SSS"
+        let base = Date()
         vm.images = (1...3).compactMap { idx in
             guard let img = platformImageNamed("Placeholder\(idx)") else { return nil }
-            return ImageItem(url: URL(fileURLWithPath: "placeholder\(idx).png"), preview: img)
+            let addedAt = base.addingTimeInterval(Double(idx))
+            let name = "photo-\(df.string(from: addedAt)).png"
+            return ImageItem(url: URL(fileURLWithPath: "placeholder\(idx).png"), preview: img, addedDate: addedAt, displayName: name)
         }
         vm.step1PreviewScale = 1.0
         vm.step2PreviewScale = 1.0

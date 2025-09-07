@@ -36,3 +36,6 @@
 "Enable to limit each merged image to a target size." = "开启后可将每张合并图片限制在目标大小内。";
 "Target file size per merged image (KB). Applies when compression is on." = "每张合并图片的目标文件大小（KB）。仅在启用压缩时生效。";
 "Generate merged files and save them to a selected folder." = "生成合并文件并保存到所选文件夹。";
+"No Preview Detail 1" = "请在下方添加图片，合并的第一组预览将显示在此处。";
+"No Preview Detail 2" = "可在下方调整合并数量和方向，预览会自动更新。";
+"Reload Preview Detail" = "点击“重新生成预览”以生成合并缩略图。";
