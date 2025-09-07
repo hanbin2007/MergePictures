@@ -5,9 +5,13 @@ struct ContentView: View {
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var hSizeClass
     #endif
+    @Environment(\.layoutDirection) private var layoutDirection
+    @State private var previousStep: Step = .selectImages
+    @State private var stepTransition: AnyTransition = .identity
 
     init(viewModel: AppViewModel = AppViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        _previousStep = State(initialValue: viewModel.step)
     }
     var body: some View {
         #if os(macOS)
@@ -177,6 +181,11 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 //        .padding(.top, 0)
+        .onChange(of: viewModel.step) { newValue in
+            withAnimation(.easeInOut) {
+                setTransition(for: newValue)
+            }
+        }
         .safeAreaInset(edge: .top) {
             VStack(spacing: 10) {
                 StepIndicator(current: $viewModel.step)
@@ -209,16 +218,37 @@ struct ContentView: View {
         }
     }
 
+    private func setTransition(for newStep: Step) {
+        let forward = newStep.rawValue > previousStep.rawValue
+        let forwardEdge: Edge = layoutDirection == .leftToRight ? .trailing : .leading
+        let backwardEdge: Edge = layoutDirection == .leftToRight ? .leading : .trailing
+        if #available(iOS 17, macOS 14, *) {
+            stepTransition = forward
+            ? .asymmetric(insertion: .push(from: forwardEdge), removal: .push(from: backwardEdge))
+            : .asymmetric(insertion: .push(from: backwardEdge), removal: .push(from: forwardEdge))
+        } else {
+            stepTransition = forward
+            ? .asymmetric(insertion: .move(edge: forwardEdge), removal: .move(edge: backwardEdge))
+            : .asymmetric(insertion: .move(edge: backwardEdge), removal: .move(edge: forwardEdge))
+        }
+        previousStep = newStep
+    }
+
     @ViewBuilder
     var content: some View {
-        switch viewModel.step {
-        case .selectImages:
-            Step1View(viewModel: viewModel)
-        case .previewAll:
-            Step2View(viewModel: viewModel)
-        case .export:
-            Step3View(viewModel: viewModel)
+        Group {
+            switch viewModel.step {
+            case .selectImages:
+                Step1View(viewModel: viewModel)
+            case .previewAll:
+                Step2View(viewModel: viewModel)
+            case .export:
+                Step3View(viewModel: viewModel)
+            }
         }
+        .id(viewModel.step)
+        .transition(stepTransition)
+        .animation(.easeInOut, value: viewModel.step)
     }
 }
 
