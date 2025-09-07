@@ -71,29 +71,39 @@ struct Step1View: View {
                     Label("Add Images", systemImage: "photo.on.rectangle.angled")
                 }
                 .controlSize(.large)
+                .help("Select one or more images to merge.")
             }
 
-            Section("Basic Settings") {
-                Stepper("Merge count: \(viewModel.mergeCount)", value: $viewModel.mergeCount, in: 1...10)
+            Section {
+                Stepper(value: $viewModel.mergeCount, in: 1...10) {
+                    HStack {
+                        Text("Merge Count")
+                        Spacer()
+                        Text("\(viewModel.mergeCount)")
+                    }
+                }
+                    .help("Number of images combined into each merged result.")
                 HStack {
                     Text("Direction")
                     Spacer()
                     Picker("Direction", selection: $viewModel.direction) {
                         ForEach(MergeDirection.allCases) { dir in
-                            Text(dir.rawValue.capitalized).tag(dir)
+                            Text(LocalizedStringKey(dir.rawValue)).tag(dir)
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     .frame(maxWidth: 200, alignment: .trailing)
+                    .help("Vertical stacks top-to-bottom; Horizontal side-by-side.")
                 }
-            }
+            } header: { Text("Basic Settings") } footer: { Text("Choose how many images to merge and the stacking direction.") }
 
-            Section("Advanced Settings") {
+            Section {
                 Button("Swap Order") {
                     viewModel.rotateImages()
                 }
                 .controlSize(.large)
-            }
+                .help("Rotate order within each merge group (move first image to the end).")
+            } header: { Text("Advanced Settings") } footer: { Text("Rearrange image order within each group without reselecting images.") }
         }
         .formStyle(.grouped)
 #else
@@ -106,19 +116,28 @@ struct Step1View: View {
             .padding()
             .buttonStyle(.borderedProminent)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .help("Select one or more images to merge.")
 
             Text("Basic Settings").bold()
 
-            Stepper("Merge count: \(viewModel.mergeCount)", value: $viewModel.mergeCount, in: 1...10)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            Stepper(value: $viewModel.mergeCount, in: 1...10) {
+                HStack {
+                    Text("Merge Count")
+                    Spacer()
+                    Text("\(viewModel.mergeCount)")
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .help("Number of images combined into each merged result.")
 
             Picker("Direction", selection: $viewModel.direction) {
                 ForEach(MergeDirection.allCases) { dir in
-                    Text(dir.rawValue.capitalized).tag(dir)
+                    Text(LocalizedStringKey(dir.rawValue)).tag(dir)
                 }
             }
             .pickerStyle(SegmentedPickerStyle())
             .frame(maxWidth: .infinity, alignment: .leading)
+            .help("Vertical stacks top-to-bottom; Horizontal side-by-side.")
 
             Text("Advance Settings").bold().padding(.top)
 
@@ -126,6 +145,7 @@ struct Step1View: View {
                 viewModel.rotateImages()
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .help("Rotate order within each merge group (move first image to the end).")
 
             Spacer()
         }

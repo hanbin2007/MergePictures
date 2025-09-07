@@ -1,0 +1,2 @@
+/* iOS 权限提示 */
+"NSPhotoLibraryUsageDescription" = "用于将合并后的照片保存到您的图库";

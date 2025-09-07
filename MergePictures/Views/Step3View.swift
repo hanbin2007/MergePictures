@@ -10,6 +10,7 @@ struct Step3View: View {
 #if !os(macOS)
     @State private var isSharePresented = false
     @State private var saveMessage: String?
+    @State private var saveIsError: Bool = false
 #endif
 
     var body: some View {
@@ -17,7 +18,11 @@ struct Step3View: View {
             // Status (system-native rows, no custom background)
             if viewModel.isExporting {
                 Section {
-                    Label("Exporting… \(Int(viewModel.exportProgress * 100))%", systemImage: "arrow.triangle.2.circlepath")
+                    Label {
+                        Text("Exporting…") + Text(" \(Int(viewModel.exportProgress * 100))%")
+                    } icon: {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                    }
                     ProgressView(value: viewModel.exportProgress)
                 }
             }
@@ -32,19 +37,26 @@ struct Step3View: View {
             #else
             if let msg = saveMessage {
                 Section {
-                    let isError = msg.lowercased().contains("fail") || msg.lowercased().contains("error")
-                    Label(msg, systemImage: isError ? "xmark.octagon.fill" : "checkmark.circle.fill")
-                        .tint(isError ? .red : .green)
+                    Label(msg, systemImage: saveIsError ? "xmark.octagon.fill" : "checkmark.circle.fill")
+                        .tint(saveIsError ? .red : .green)
                 }
             }
             #endif
 
             // Export Settings
-            Section("Export Settings") {
+            Section {
                 Toggle("Compress Output", isOn: $viewModel.enableCompression)
-                Stepper("Max KB: \(viewModel.maxFileSizeKB)", value: $viewModel.maxFileSizeKB, in: 100...10000, step: 100)
-                    .disabled(!viewModel.enableCompression)
-            }
+                    .help("Enable to limit each merged image to a target size.")
+                Stepper(value: $viewModel.maxFileSizeKB, in: 100...10000, step: 100) {
+                    HStack {
+                        Text("Max KB")
+                        Spacer()
+                        Text("\(viewModel.maxFileSizeKB)")
+                    }
+                }
+                .disabled(!viewModel.enableCompression)
+                .help("Target file size per merged image (KB). Applies when compression is on.")
+            } header: { Text("Export Settings") } footer: { Text("Choose whether to compress output and set a maximum file size per merged image.") }
 
             // Actions
             #if os(macOS)
@@ -54,11 +66,13 @@ struct Step3View: View {
                         .buttonStyle(.glassProminent)
                         .controlSize(.large)
                         .disabled(viewModel.isExporting)
+                        .help("Generate merged files and save them to a selected folder.")
                 } else {
                     Button("Export") { exportImages() }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
                         .disabled(viewModel.isExporting)
+                        .help("Generate merged files and save them to a selected folder.")
                 }
             }
             #endif
@@ -145,7 +159,8 @@ struct Step3View: View {
         viewModel.generateExportCache { success in
             if success {
                 viewModel.saveExportedImagesToPhotos { s in
-                    saveMessage = s ? "Saved to Photos" : "Save Failed"
+                    saveIsError = !s
+                    saveMessage = s ? String(localized: "Saved to Photos") : String(localized: "Save Failed")
                 }
             }
         }
