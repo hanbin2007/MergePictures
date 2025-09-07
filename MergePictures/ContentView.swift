@@ -33,12 +33,9 @@ struct ContentView: View {
     }
 
     private var detailContent: some View {
-        VStack(spacing: 10) {
-            StepIndicator(current: $viewModel.step)
-                
-            Divider()
+        VStack(spacing: 0) {
 
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: viewModel.step == .export ? 0 : 16) {
                 content
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -175,10 +172,18 @@ struct ContentView: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 50)
+            .frame(minHeight: 50)
+            .background(.bar)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.top)
+//        .padding(.top, 0)
+        .safeAreaInset(edge: .top) {
+            VStack(spacing: 10) {
+                StepIndicator(current: $viewModel.step)
+                Divider()
+            }
+            .background(.bar)
+        }
         #if os(macOS)
         .toolbar {
             ToolbarItem(placement: .automatic) {

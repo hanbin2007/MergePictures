@@ -13,67 +13,110 @@ struct Step3View: View {
 #endif
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading) {
+        Form {
+            // Status (system-native rows, no custom background)
+            if viewModel.isExporting {
+                Section {
+                    Label("Exporting… \(Int(viewModel.exportProgress * 100))%", systemImage: "arrow.triangle.2.circlepath")
+                    ProgressView(value: viewModel.exportProgress)
+                }
+            }
+
+            #if os(macOS)
+            if viewModel.exportProgress == 1 && !viewModel.isExporting {
+                Section {
+                    Label("Export Completed!", systemImage: "checkmark.circle.fill")
+                        .tint(.green)
+                }
+            }
+            #else
+            if let msg = saveMessage {
+                Section {
+                    let isError = msg.lowercased().contains("fail") || msg.lowercased().contains("error")
+                    Label(msg, systemImage: isError ? "xmark.octagon.fill" : "checkmark.circle.fill")
+                        .tint(isError ? .red : .green)
+                }
+            }
+            #endif
+
+            // Export Settings
+            Section("Export Settings") {
+                Toggle("Compress Output", isOn: $viewModel.enableCompression)
                 Stepper("Max KB: \(viewModel.maxFileSizeKB)", value: $viewModel.maxFileSizeKB, in: 100...10000, step: 100)
                     .disabled(!viewModel.enableCompression)
-                Toggle("Compress Output", isOn: $viewModel.enableCompression)
-                if viewModel.isExporting {
-                    ProgressView(value: viewModel.exportProgress)
-                        .padding(.vertical)
-                }
-                #if os(macOS)
-                Button("Export") { exportImages() }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .disabled(viewModel.isExporting)
-                if viewModel.exportProgress == 1 && !viewModel.isExporting {
-                    Text("Export Completed!").foregroundColor(.green)
-                }
-                #else
-                HStack {
-                    Spacer()
-                    VStack {
-                        Button { exportImages() } label:{
-                            Text("Share")
-                                .frame(alignment: .center)
-                                .bold()
-                                .frame(maxWidth: .infinity)
-                        }
+            }
+
+            // Actions
+            #if os(macOS)
+            Section("Actions") {
+                if #available(macOS 15.0, *) {
+                    Button("Export") { exportImages() }
+                        .buttonStyle(.glassProminent)
+                        .controlSize(.large)
+                        .disabled(viewModel.isExporting)
+                } else {
+                    Button("Export") { exportImages() }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
                         .disabled(viewModel.isExporting)
-                            
-                        Button { saveToPhotos() } label: {
-                            Text("Save To Photos")
-                                .frame(alignment: .center)
-                                .bold()
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.large)
-                        .bold()
-                        .disabled(viewModel.isExporting)
-                    }
-                    .frame(maxWidth: .infinity)
-                    Spacer()
                 }
-                
-                if let msg = saveMessage {
-                    Text(msg).foregroundColor(.green)
-                }
-                #endif
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-        }.padding()
-#if !os(macOS)
+            #endif
+        }
+        #if os(iOS)
+        .formStyle(.grouped)
+        .safeAreaInset(edge: .bottom) {
+            HStack(spacing: 12) {
+                if #available(iOS 26.0, *) {
+                    Button { saveToPhotos() } label: {
+                        Label("Save To Photos", systemImage: "photo")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.glass)
+                    .controlSize(.large)
+                    .disabled(viewModel.isExporting)
+                } else {
+                    // Fallback on earlier versions
+                    Button { saveToPhotos() } label: {
+                        Label("Save To Photos", systemImage: "photo")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .disabled(viewModel.isExporting)
+                }
+
+                if #available(iOS 26.0, *) {
+                    Button { exportImages() } label: {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.glassProminent)
+                    .controlSize(.large)
+                    .disabled(viewModel.isExporting)
+                } else {
+                    // Fallback on earlier versions
+                    Button { exportImages() } label: {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(viewModel.isExporting)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 10)
+            .background(.bar)
+        }
+        #endif
+        #if !os(macOS)
         .sheet(isPresented: $isSharePresented, onDismiss: {
             viewModel.clearExportCache()
         }) {
             ActivityView(items: viewModel.exportFileURLs)
         }
-#endif
+        #endif
     }
 
     func exportImages() {
