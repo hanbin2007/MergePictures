@@ -86,7 +86,7 @@ struct Step3View: View {
                         Label("Save To Photos", systemImage: "photo")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.glass)
+//                    .buttonStyle(.glass)
                     .controlSize(.large)
                     .disabled(viewModel.isExporting)
                 } else {
@@ -105,7 +105,7 @@ struct Step3View: View {
                         Label("Share", systemImage: "square.and.arrow.up")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.glassProminent)
+//                    .buttonStyle(.glassProminent)
                     .controlSize(.large)
                     .disabled(viewModel.isExporting)
                 } else {
