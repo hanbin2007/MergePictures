@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>技术支持 · 图融 / ImFlux Support</title>
+  <meta name="description" content="图融 / ImFlux 技术支持与帮助：常见问题、快速上手、版本要求、联系方式与隐私政策。" />
+  <style>
+    :root{
+      --fg:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#ffffff; --accent:#16a34a;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--fg); background:var(--bg)}
+    header{padding:28px 16px; border-bottom:1px solid var(--line)}
+    .wrap{max-width:920px; margin:0 auto; padding:0 16px}
+    h1{font-size:1.8rem; margin:0 0 6px}
+    .sub{color:var(--muted); font-size:0.98rem}
+    .lang{margin-top:12px}
+    .lang button{border:1px solid var(--line); background:#f8fafc; border-radius:8px; padding:6px 10px; margin-right:8px; cursor:pointer}
+    main{padding:28px 0}
+    section{padding:22px 0; border-bottom:1px solid var(--line)}
+    h2{font-size:1.3rem; margin:0 0 12px}
+    h3{font-size:1.05rem; margin:18px 0 8px}
+    ul,ol{margin:8px 0 8px 20px}
+    .card{border:1px solid var(--line); border-radius:14px; padding:16px; background:#fff}
+    .muted{color:var(--muted)}
+    a{color:#0f6bdc; text-decoration:none}
+    a:hover{text-decoration:underline}
+    .badge{display:inline-block; padding:2px 8px; border-radius:999px; background:#f1f5f9; color:#0f6bdc; font-size:12px; margin-left:6px}
+    .cta{display:inline-block; padding:10px 14px; border-radius:10px; background:var(--accent); color:#fff; text-decoration:none}
+    footer{padding:26px 16px; text-align:center; color:var(--muted)}
+    .content{display:none}
+    .content.active{display:block}
+    .grid{display:grid; grid-template-columns:1fr; gap:14px}
+    @media (min-width:720px){ .grid{grid-template-columns:1fr 1fr} }
+    code{background:#f8fafc; border:1px solid var(--line); padding:2px 6px; border-radius:6px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>图融 · ImFlux <span class="badge">Support</span></h1>
+      <div class="sub" id="subtitle-zh">高性能批量合并图片 · 无损高质量 · 可选的精确压缩（本地处理）</div>
+      <div class="sub" id="subtitle-en" style="display:none;">High-performance batch image merging · Near-lossless quality · Optional precise compression (on-device)</div>
+      <div class="lang">
+        <button onclick="switchLang('zh')">中文</button>
+        <button onclick="switchLang('en')">English</button>
+        <a class="cta" style="margin-left:8px" href="mailto:thebestzhq@gmail.com">Email 支持</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- 中文 -->
+    <div id="zh" class="content active">
+      <section>
+        <h2>快速上手</h2>
+        <ol>
+          <li>导入图片：在 iOS 或 macOS 中选择多张图片。</li>
+          <li>选择布局：水平 / 垂直 / 网格。</li>
+          <li>导出设置：分辨率、自定义画布；如需<strong>可选的精确压缩</strong>，请输入目标大小（KB/MB）。</li>
+          <li>一键合并并保存至相册 / 文件。</li>
+        </ol>
+        <div class="muted">提示：所有处理均在设备<strong>本地</strong>完成，不会上传到服务器。</div>
+      </section>
+
+      <section>
+        <h2>系统与平台</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>iOS / iPadOS</h3>
+            <ul>
+              <li>建议 iOS 15 或更高</li>
+              <li>照片/文件读写权限（仅本地使用）</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>macOS</h3>
+            <ul>
+              <li>建议 macOS 12 或更高</li>
+              <li>文件读写权限（仅本地使用）</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>常见问题（FAQ）</h2>
+        <h3>1) 如何获得无损或近乎无损的结果？</h3>
+        <ul>
+          <li>导出格式选择 PNG 或高质量 JPEG。</li>
+          <li>关闭多次重复压缩；必要时使用「可选的精确压缩」并设置足够的目标大小。</li>
+        </ul>
+        <h3>2) 结果体积与目标大小略有差异？</h3>
+        <p>受图像内容与编码器限制，精确压缩会在目标值附近微调（±数 KB）。建议将目标大小设为略高于最低需求。</p>
+        <h3>3) 导出太慢或内存不足？</h3>
+        <ul>
+          <li>降低单次合并的图片数量或分辨率。</li>
+          <li>在 macOS 上优先使用 Apple Silicon 设备。</li>
+        </ul>
+        <h3>4) 颜色偏差/显示不一致？</h3>
+        <ul>
+          <li>确保素材为 sRGB；导出时也选择 sRGB。</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>联系与支持</h2>
+        <p>邮箱：<a href="mailto:thebestzhq@gmail.com">thebestzhq@gmail.com</a></p>
+        <p>隐私政策：<a href="https://hanbin2007.github.io/privacy-policy/" target="_blank" rel="noopener">https://hanbin2007.github.io/privacy-policy/</a></p>
+        <p class="muted">反馈建议请尽可能附带：设备型号、系统版本、应用版本、问题复现步骤与样例截图。</p>
+      </section>
+    </div>
+
+    <!-- English -->
+    <div id="en" class="content">
+      <section>
+        <h2>Quick Start</h2>
+        <ol>
+          <li>Import multiple images on iOS, iPadOS, or macOS.</li>
+          <li>Choose a layout: horizontal / vertical / grid.</li>
+          <li>Export options: resolution & canvas. For <strong>optional precise compression</strong>, set a target size (KB/MB).</li>
+          <li>Merge in one tap and save to Photos / Files.</li>
+        </ol>
+        <div class="muted">Note: All processing is performed <strong>on-device</strong>. Nothing is uploaded.</div>
+      </section>
+
+      <section>
+        <h2>Requirements</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>iOS / iPadOS</h3>
+            <ul>
+              <li>iOS 15 or later recommended</li>
+              <li>Photos/Files permissions (local only)</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>macOS</h3>
+            <ul>
+              <li>macOS 12 or later recommended</li>
+              <li>File read/write permission (local only)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>FAQ</h2>
+        <h3>1) How to get lossless or near-lossless results?</h3>
+        <ul>
+          <li>Export as PNG or high-quality JPEG.</li>
+          <li>Avoid repeated re-encoding; when needed, use “optional precise compression” with a sufficient target size.</li>
+        </ul>
+        <h3>2) Why is the final size slightly off the target?</h3>
+        <p>Due to image content and encoder behavior, precise compression converges near the target (±a few KB). Set a slightly higher target if required.</p>
+        <h3>3) Slow export or memory pressure?</h3>
+        <ul>
+          <li>Reduce image count per batch or lower resolution.</li>
+          <li>Use Apple Silicon Macs for best performance.</li>
+        </ul>
+        <h3>4) Color mismatch?</h3>
+        <ul>
+          <li>Ensure source images are sRGB; export as sRGB as well.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Contact & Support</h2>
+        <p>Email: <a href="mailto:thebestzhq@gmail.com">thebestzhq@gmail.com</a></p>
+        <p>Privacy Policy: <a href="https://hanbin2007.github.io/privacy-policy/" target="_blank" rel="noopener">https://hanbin2007.github.io/privacy-policy/</a></p>
+        <p class="muted">When reporting an issue, include device model, OS version, app version, steps to reproduce, and screenshots if possible.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    © 2025 张涵彬 · Hanbin Zhang · 图融 / ImFlux
+  </footer>
+
+  <script>
+    function switchLang(lang){
+      const zh=document.getElementById('zh');
+      const en=document.getElementById('en');
+      const subZh=document.getElementById('subtitle-zh');
+      const subEn=document.getElementById('subtitle-en');
+      if(lang==='zh'){ zh.classList.add('active'); en.classList.remove('active'); subZh.style.display='block'; subEn.style.display='none'; }
+      else { en.classList.add('active'); zh.classList.remove('active'); subZh.style.display='none'; subEn.style.display='block'; }
+      // 记住偏好
+      try{ localStorage.setItem('lang',lang); }catch(e){}
+    }
+    // 初始按浏览器或缓存语言
+    (function(){
+      let lang=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en';
+      try{ lang=localStorage.getItem('lang')||lang; }catch(e){}
+      switchLang(lang);
+    })();
+  </script>
+</body>
+</html>
