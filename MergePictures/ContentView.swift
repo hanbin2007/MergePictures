@@ -59,7 +59,7 @@ struct ContentView: View {
                                 .frame(maxWidth: .infinity)
                                 .bold()
                         }
-//                        .buttonStyle(.glass)
+                        .buttonStyle(.glass)
                         .controlSize(.large)
                         .padding(.vertical)
                         .disabled(viewModel.isExporting)
@@ -90,7 +90,7 @@ struct ContentView: View {
                                 .frame(maxWidth: .infinity)
                                 .bold()
                         }
-//                        .buttonStyle(.glassProminent)
+                        .buttonStyle(.glassProminent)
                         .controlSize(.large)
                         .padding(.vertical)
                         .disabled(viewModel.isMerging || viewModel.images.isEmpty)
@@ -123,7 +123,7 @@ struct ContentView: View {
                                 .bold()
                         }
                         .padding()
-//                        .buttonStyle(.glass)
+                        .buttonStyle(.glass)
                         .controlSize(.large)
                         .disabled(viewModel.isExporting)
                     } else {
@@ -153,7 +153,7 @@ struct ContentView: View {
                                 .frame(maxWidth: .infinity)
                                 .bold()
                         }
-//                        .buttonStyle(.glassProminent)
+                        .buttonStyle(.glassProminent)
                         .padding()
                         .controlSize(.large)
                         .disabled(viewModel.isMerging || viewModel.images.isEmpty)
