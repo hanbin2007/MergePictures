@@ -1,2 +1,3 @@
 /* iOS permission prompts */
 "NSPhotoLibraryUsageDescription" = "Used to add photos merged to your library";
+"CFBundleDisplayName" = "ImFlux";

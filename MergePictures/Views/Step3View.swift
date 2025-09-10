@@ -62,11 +62,20 @@ struct Step3View: View {
             #if os(macOS)
             Section("Actions") {
                 if #available(macOS 15.0, *) {
-                    Button("Export") { exportImages() }
-                        .buttonStyle(.glassProminent)
-                        .controlSize(.large)
-                        .disabled(viewModel.isExporting)
-                        .help("Generate merged files and save them to a selected folder.")
+                    if #available(macOS 26.0, *) {
+                        Button("Export") { exportImages() }
+                            .buttonStyle(.glassProminent)
+                            .controlSize(.large)
+                            .disabled(viewModel.isExporting)
+                            .help("Generate merged files and save them to a selected folder.")
+                    } else {
+                        // Fallback on earlier versions
+                        Button("Export") { exportImages() }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .disabled(viewModel.isExporting)
+                            .help("Generate merged files and save them to a selected folder.")
+                    }
                 } else {
                     Button("Export") { exportImages() }
                         .buttonStyle(.borderedProminent)
@@ -86,7 +95,7 @@ struct Step3View: View {
                         Label("Save To Photos", systemImage: "photo")
                             .frame(maxWidth: .infinity)
                     }
-//                    .buttonStyle(.glass)
+                    .buttonStyle(.glass)
                     .controlSize(.large)
                     .disabled(viewModel.isExporting)
                 } else {
@@ -105,7 +114,7 @@ struct Step3View: View {
                         Label("Share", systemImage: "square.and.arrow.up")
                             .frame(maxWidth: .infinity)
                     }
-//                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.glassProminent)
                     .controlSize(.large)
                     .disabled(viewModel.isExporting)
                 } else {
