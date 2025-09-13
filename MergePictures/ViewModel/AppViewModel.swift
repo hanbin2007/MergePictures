@@ -13,7 +13,14 @@ import Photos
 #endif
 
 class AppViewModel: ObservableObject {
-    @Published var step: Step = .selectImages
+    @Published var step: Step = .selectImages {
+        didSet {
+            // 进入预览后解锁所有 Step 指示器按钮
+            if step == .previewAll && !images.isEmpty {
+                stepIndicatorUnlockedAll = true
+            }
+        }
+    }
 
     @Published var mergeCount: Int = 2 {
         didSet {
@@ -33,6 +40,10 @@ class AppViewModel: ObservableObject {
         didSet {
             clearMergedResults()
             updatePreview()
+            // 清空图片后恢复初始状态（禁用 Preview/Export）
+            if images.isEmpty {
+                stepIndicatorUnlockedAll = false
+            }
         }
     }
     @Published var mergedImageURLs: [URL] = []
@@ -51,6 +62,8 @@ class AppViewModel: ObservableObject {
     @Published var sortAscending: Bool = true
     @Published var step1PreviewScale: CGFloat = 1.0
     @Published var step2PreviewScale: CGFloat = 1.0
+    // 进入 Preview 后，Step 指示器解锁所有按钮；清空图片时重置
+    @Published var stepIndicatorUnlockedAll: Bool = false
 
     private let fileManager = FileManager.default
     private let previewMergeDimension: CGFloat = 2048

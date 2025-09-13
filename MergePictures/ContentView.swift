@@ -185,7 +185,7 @@ struct ContentView: View {
             VStack(spacing: 8) {
                 ZStack {
                     // Centered step indicator
-                    StepIndicator(current: $viewModel.step)
+                    StepIndicator(current: $viewModel.step, viewModel: viewModel)
                         .frame(maxWidth: .infinity, alignment: .center)
                     // Left-aligned button (iOS compact only)
                     #if os(iOS)
