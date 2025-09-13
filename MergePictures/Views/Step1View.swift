@@ -7,6 +7,7 @@ struct Step1View: View {
     @ObservedObject var viewModel: AppViewModel
 #if os(iOS)
     @State private var selectedItems: [PhotosPickerItem] = []
+    @Environment(\.horizontalSizeClass) private var hSizeClass
 #else
     @State private var showImporter = false
 #endif
@@ -126,6 +127,24 @@ struct Step1View: View {
                 .controlSize(.large)
                 .help("Rotate order within each merge group (move first image to the end).")
             } header: { Text("Advanced Settings") } footer: { Text("Rearrange image order within each group without reselecting images.") }
+
+            // Separate group for opening the image list or guiding manual sorting in sidebar
+            Section {
+                let isSidebarVisible = (hSizeClass == .regular)
+                let buttonKey = isSidebarVisible ? "Manually Sort in Sidebar" : "Open Image List to Sort"
+                Button(LocalizedStringKey(buttonKey)) {
+                    if isSidebarVisible {
+                        // Ensure the sidebar is shown when sorting in sidebar is intended
+                        NotificationCenter.default.post(name: Notification.Name("OpenSidebar"), object: nil)
+                    } else {
+                        // Open list as a sheet for manual sorting
+                        viewModel.presentImageListSheet = true
+                    }
+                }
+                .controlSize(.large)
+            } footer: {
+                Text(LocalizedStringKey("Manual Sort Description"))
+            }
         }
         .formStyle(.grouped)
 #else
@@ -168,6 +187,17 @@ struct Step1View: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .help("Rotate order within each merge group (move first image to the end).")
+
+            // Separate group for opening the image list or guiding manual sorting in sidebar (macOS)
+            Divider().padding(.vertical, 4)
+            Button(LocalizedStringKey("Manually Sort in Sidebar")) {
+                NotificationCenter.default.post(name: Notification.Name("OpenSidebar"), object: nil)
+            }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(LocalizedStringKey("Manual Sort Description"))
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
             Spacer()
         }

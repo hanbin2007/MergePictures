@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 #if os(iOS)
 import UIKit
 #endif
@@ -8,14 +9,14 @@ struct ContentView: View {
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var hSizeClass
     #endif
-    @State private var showSidebarSheet: Bool = false
+    @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
 
     init(viewModel: AppViewModel = AppViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
     var body: some View {
         #if os(macOS)
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $splitViewVisibility) {
             ImageSidebarView(viewModel: viewModel)
                 .navigationSplitViewColumnWidth(min: 150, ideal: 200, max: 400)
         } detail: {
@@ -23,7 +24,7 @@ struct ContentView: View {
         }
         #else
         if hSizeClass == .regular {
-            NavigationSplitView {
+            NavigationSplitView(columnVisibility: $splitViewVisibility) {
                 ImageSidebarView(viewModel: viewModel)
             } detail: {
                 detailContent
@@ -192,7 +193,7 @@ struct ContentView: View {
                     HStack {
                         if hSizeClass == .compact && !(isiOS26OrNewer && isPadDevice) {
                             Button {
-                                showSidebarSheet = true
+                                viewModel.presentImageListSheet = true
                             } label: {
                                 Group {
                                     if #available(iOS 17.0, *) {
@@ -214,12 +215,16 @@ struct ContentView: View {
             }
             .background(.bar)
         }
+        // Allow children to request opening the sidebar when needed
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("OpenSidebar"))) { _ in
+            splitViewVisibility = .all
+        }
         #if os(iOS)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 if isiOS26OrNewer && isPadDevice && hSizeClass == .compact {
                     Button {
-                        showSidebarSheet = true
+                        viewModel.presentImageListSheet = true
                     } label: {
                         if #available(iOS 17.0, *) {
                             Image(systemName: "photo.stack")
@@ -229,19 +234,41 @@ struct ContentView: View {
                     }
                 }
             }
+            ToolbarItem(placement: .topBarLeading) {
+                if hSizeClass == .regular && splitViewVisibility != .all {
+                    Button {
+                        splitViewVisibility = .all
+                    } label: {
+                        Image(systemName: "sidebar.left")
+                    }
+                    .help(LocalizedStringKey("Show Sidebar"))
+                    .accessibilityLabel(LocalizedStringKey("Show Sidebar"))
+                }
+            }
         }
         #endif
         #if os(iOS)
-        .sheet(isPresented: $showSidebarSheet) {
+        .sheet(isPresented: Binding(get: { viewModel.presentImageListSheet }, set: { viewModel.presentImageListSheet = $0 })) {
             NavigationStack {
                 ImageSidebarView(viewModel: viewModel)
                     .navigationTitle("Images")
-                    .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { showSidebarSheet = false } } }
+                    .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { viewModel.presentImageListSheet = false } } }
             }
         }
         #endif
         #if os(macOS)
         .toolbar {
+            ToolbarItem(placement: .navigation) {
+                if splitViewVisibility != .all {
+                    Button {
+                        splitViewVisibility = .all
+                    } label: {
+                        Image(systemName: "sidebar.left")
+                    }
+                    .help(LocalizedStringKey("Show Sidebar"))
+                    .accessibilityLabel(LocalizedStringKey("Show Sidebar"))
+                }
+            }
             ToolbarItem(placement: .automatic) {
                 HStack {
                     Image(systemName: "magnifyingglass")
