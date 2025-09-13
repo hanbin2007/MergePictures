@@ -39,3 +39,7 @@
 "No Preview Detail 1" = "请在下方添加图片，合并的第一组预览将显示在此处。";
 "No Preview Detail 2" = "可在下方调整合并数量和方向，预览会自动更新。";
 "Reload Preview Detail" = "点击“重新生成预览”以生成合并缩略图。";
+"Open Image List to Sort" = "打开图片列表以排序";
+"Manually Sort in Sidebar" = "在侧栏进行手动排序";
+"Manual Sort Description" = "在图片列表中拖拽调整顺序；若侧栏已显示，可直接在侧栏中手动排序。";
+"Show Sidebar" = "显示侧栏";

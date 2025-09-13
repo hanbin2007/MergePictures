@@ -39,3 +39,7 @@
 "No Preview Detail 1" = "Add images below to see a live merged preview of your first group of images here.";
 "No Preview Detail 2" = "Adjust merge count and direction; the preview updates automatically.";
 "Reload Preview Detail" = "Tap Reload Preview to generate the merged thumbnails.";
+"Open Image List to Sort" = "Open Image List to Sort";
+"Manually Sort in Sidebar" = "Manually Sort in Sidebar";
+"Manual Sort Description" = "Open the image list to drag and reorder images. If the sidebar is visible, drag items there to adjust the order.";
+"Show Sidebar" = "Show Sidebar";

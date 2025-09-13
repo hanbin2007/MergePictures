@@ -64,6 +64,8 @@ class AppViewModel: ObservableObject {
     @Published var step2PreviewScale: CGFloat = 1.0
     // 进入 Preview 后，Step 指示器解锁所有按钮；清空图片时重置
     @Published var stepIndicatorUnlockedAll: Bool = false
+    // Controls presenting the image list sheet on iOS compact layouts
+    @Published var presentImageListSheet: Bool = false
 
     private let fileManager = FileManager.default
     private let previewMergeDimension: CGFloat = 2048
