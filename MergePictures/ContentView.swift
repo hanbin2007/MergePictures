@@ -234,17 +234,6 @@ struct ContentView: View {
                     }
                 }
             }
-            ToolbarItem(placement: .topBarLeading) {
-                if hSizeClass == .regular && splitViewVisibility != .all {
-                    Button {
-                        splitViewVisibility = .all
-                    } label: {
-                        Image(systemName: "sidebar.left")
-                    }
-                    .help(LocalizedStringKey("Show Sidebar"))
-                    .accessibilityLabel(LocalizedStringKey("Show Sidebar"))
-                }
-            }
         }
         #endif
         #if os(iOS)
