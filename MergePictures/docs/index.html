@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MergePictures — User Guide</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 24px; line-height: 1.6; }
+    h1, h2 { margin: 0.6em 0; }
+    code, kbd { background: #f4f5f7; padding: 1px 6px; border-radius: 4px; }
+    .cn { color: #555; }
+    .card { border: 1px solid #e3e5e8; border-radius: 10px; padding: 16px; margin: 16px 0; }
+    ul { margin: 0.4em 0 0.8em 1.2em; }
+  </style>
+  </head>
+  <body>
+  <h1>MergePictures — User Guide</h1>
+
+  <div class="card">
+    <h2>Basic Settings</h2>
+    <ul>
+      <li><b>Merge Count</b>: Number of images to combine per result.</li>
+      <li><b>Direction</b>: Vertical (top-to-bottom) or Horizontal (side-by-side).</li>
+      <li><b>Uniform Scaling</b>: Toggle proportional scaling on/off. When on, images are scaled so a chosen dimension matches before merging.</li>
+      <li><b>Uniform Dimension</b>: Proportionally scale all images so either widths or heights match before merging.
+        <ul>
+          <li><b>Auto</b>: Vertical merges unify widths; Horizontal merges unify heights.</li>
+          <li><b>Fit Width</b>: Always unify widths.</li>
+          <li><b>Fit Height</b>: Always unify heights.</li>
+        </ul>
+      </li>
+      <li><b>Scale Strategy</b>: How to choose the target size for the unified dimension. The app shows a live description matching your current selection.
+        <ul>
+          <li><b>Min</b>: Shrink all images to the smallest width/height (no upscaling).</li>
+          <li><b>Max</b>: Enlarge all images to the largest width/height (no downscaling).</li>
+          <li><b>Average</b>: Scale all images to the average width/height.</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card cn">
+    <h2>基础设置</h2>
+    <ul>
+      <li><b>合并数量</b>：每张合成图片包含的源图数量。</li>
+      <li><b>方向</b>：纵向（从上到下）或横向（并排）。</li>
+      <li><b>统一缩放</b>：可开关。开启后，将在合并前对图片进行等比例缩放。</li>
+      <li><b>统一维度</b>：合并前将所有图片等比例缩放，使其宽度或高度一致。
+        <ul>
+          <li><b>自动</b>：纵向合并统一宽度；横向合并统一高度。</li>
+          <li><b>统一宽度</b>：始终统一宽度。</li>
+          <li><b>统一高度</b>：始终统一高度。</li>
+        </ul>
+      </li>
+      <li><b>缩放策略</b>：选择统一维度的目标大小。界面会根据你的选择实时显示对应说明。
+        <ul>
+          <li><b>最小</b>：将所有图片缩小到组内最小的宽/高（不放大）。</li>
+          <li><b>最大</b>：将所有图片放大到组内最大的宽/高（不缩小）。</li>
+          <li><b>平均</b>：将所有图片缩放到组内平均的宽/高。</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <p>Tip: These settings affect both preview generation and exported results.</p>
+  <p class="cn">提示：以上设置同时影响预览与导出的合成结果。</p>
+  </body>
+  </html>

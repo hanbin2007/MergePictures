@@ -36,6 +36,27 @@ class AppViewModel: ObservableObject {
         }
     }
 
+    @Published var enableUniformScaling: Bool = false {
+        didSet {
+            clearMergedResults()
+            updatePreview()
+        }
+    }
+
+    @Published var scaleMode: ScaleMode = .auto {
+        didSet {
+            clearMergedResults()
+            updatePreview()
+        }
+    }
+
+    @Published var scaleStrategy: ScaleStrategy = .average {
+        didSet {
+            clearMergedResults()
+            updatePreview()
+        }
+    }
+
     @Published var images: [ImageItem] = [] {
         didSet {
             clearMergedResults()
@@ -79,6 +100,14 @@ class AppViewModel: ObservableObject {
         df.dateFormat = "yyyyMMdd-HHmmss-SSS"
         return df
     }()
+
+    var scaleStrategyDescriptionKey: String {
+        switch scaleStrategy {
+        case .min: return "Scale Strategy Detail Min"
+        case .max: return "Scale Strategy Detail Max"
+        case .average: return "Scale Strategy Detail Average"
+        }
+    }
 
     var exportFileURLs: [URL] {
         guard let cacheDir = exportCacheDirectory else { return [] }
@@ -326,30 +355,22 @@ class AppViewModel: ObservableObject {
         mergeProgress = 0
         DispatchQueue.global(qos: .userInitiated).async {
             var index = 0
+            var group = 0
             while index < self.images.count {
                 autoreleasepool {
                     let end = min(index + self.mergeCount, self.images.count)
-                    var merged: PlatformImage?
-                    for item in self.images[index..<end] {
-                        autoreleasepool {
-                            if let img = loadPlatformImage(from: item.url, maxDimension: self.previewMergeDimension) {
-                                if let current = merged {
-                                    merged = self.merge(images: [current, img], direction: self.direction)
-                                } else {
-                                    merged = img
-                                }
-                            }
-                        }
+                    let imgs: [PlatformImage] = self.images[index..<end].compactMap { item in
+                        loadPlatformImage(from: item.url, maxDimension: self.previewMergeDimension)
                     }
-                    if let result = merged, let dir = self.mergeCacheDirectory {
-                        let fileURL = dir.appendingPathComponent("merged_\(index / self.mergeCount).png")
+                    if let result = self.merge(images: imgs, direction: self.direction), let dir = self.mergeCacheDirectory {
+                        let fileURL = dir.appendingPathComponent("merged_\(group).png")
                         try? savePlatformImage(result, to: fileURL)
                         DispatchQueue.main.async {
                             self.mergedImageURLs.append(fileURL)
                         }
                     }
-                    merged = nil
                     index += self.mergeCount
+                    group += 1
                     DispatchQueue.main.async {
                         self.mergeProgress = Double(index) / Double(self.images.count)
                     }
@@ -386,20 +407,11 @@ class AppViewModel: ObservableObject {
             while index < self.images.count {
                 autoreleasepool {
                     let end = min(index + self.mergeCount, self.images.count)
-                    var merged: PlatformImage?
-                    for item in self.images[index..<end] {
-                        autoreleasepool {
-                            let maxDim: CGFloat? = self.enableCompression ? self.exportProcessingDimension : nil
-                            if let img = loadPlatformImage(from: item.url, maxDimension: maxDim) {
-                                if let current = merged {
-                                    merged = self.merge(images: [current, img], direction: self.direction)
-                                } else {
-                                    merged = img
-                                }
-                            }
-                        }
+                    let maxDim: CGFloat? = self.enableCompression ? self.exportProcessingDimension : nil
+                    let imgs: [PlatformImage] = self.images[index..<end].compactMap { item in
+                        loadPlatformImage(from: item.url, maxDimension: maxDim)
                     }
-                    if let result = merged {
+                    if let result = self.merge(images: imgs, direction: self.direction) {
                         autoreleasepool {
                             var data: Data?
                             var ext: String = ""
@@ -418,7 +430,6 @@ class AppViewModel: ObservableObject {
                             }
                         }
                     }
-                    merged = nil
                     index += self.mergeCount
                     group += 1
                     DispatchQueue.main.async {
@@ -436,15 +447,104 @@ class AppViewModel: ObservableObject {
     func merge(images: [PlatformImage], direction: MergeDirection) -> PlatformImage? {
         let cgImages = images.compactMap { cgImage(from: $0) }
         guard !cgImages.isEmpty else { return nil }
-        let totalSize = cgImages.reduce(CGSize.zero) { partial, cg in
-            let size = CGSize(width: cg.width, height: cg.height)
+
+        if !enableUniformScaling {
+            // Original behavior: no scaling, just concatenate
+            let totalSize = cgImages.reduce(CGSize.zero) { partial, cg in
+                let size = CGSize(width: cg.width, height: cg.height)
+                switch direction {
+                case .horizontal:
+                    return CGSize(width: partial.width + size.width, height: max(partial.height, size.height))
+                case .vertical:
+                    return CGSize(width: max(partial.width, size.width), height: partial.height + size.height)
+                }
+            }
+            guard let ctx = CGContext(data: nil,
+                                      width: Int(totalSize.width),
+                                      height: Int(totalSize.height),
+                                      bitsPerComponent: 8,
+                                      bytesPerRow: 0,
+                                      space: CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+                return nil
+            }
+            ctx.interpolationQuality = .high
+            var current = CGPoint.zero
+            for cg in cgImages {
+                let size = CGSize(width: cg.width, height: cg.height)
+                let rect = CGRect(origin: current, size: size)
+                ctx.draw(cg, in: rect)
+                switch direction {
+                case .horizontal:
+                    current.x += size.width
+                case .vertical:
+                    current.y += size.height
+                }
+            }
+            guard let combined = ctx.makeImage() else { return nil }
+            #if os(macOS)
+            return NSImage(cgImage: combined, size: totalSize)
+            #else
+            return UIImage(cgImage: combined)
+            #endif
+        }
+
+        // Determine which dimension to unify
+        let unifyWidth: Bool = {
+            switch scaleMode {
+            case .fitWidth: return true
+            case .fitHeight: return false
+            case .auto:
+                return direction == .vertical // vertical stacking → unify widths
+            }
+        }()
+
+        // Collect the dimension to unify for each image
+        let dims: [CGFloat] = cgImages.map { cg in
+            let w = CGFloat(cg.width)
+            let h = CGFloat(cg.height)
+            return unifyWidth ? w : h
+        }
+
+        // Compute the target dimension based on strategy
+        let targetDim: CGFloat = {
+            switch scaleStrategy {
+            case .min:
+                return dims.min() ?? dims.first ?? 0
+            case .max:
+                return dims.max() ?? dims.first ?? 0
+            case .average:
+                guard !dims.isEmpty else { return 0 }
+                return dims.reduce(0, +) / CGFloat(dims.count)
+            }
+        }()
+
+        // Compute scaled sizes and total canvas size
+        var scaledSizes: [CGSize] = []
+        scaledSizes.reserveCapacity(cgImages.count)
+
+        for cg in cgImages {
+            let w = CGFloat(cg.width)
+            let h = CGFloat(cg.height)
+            let scale = unifyWidth ? (targetDim / max(w, 0.0001)) : (targetDim / max(h, 0.0001))
+            let newW = max(Int(w * scale), 1)
+            let newH = max(Int(h * scale), 1)
+            scaledSizes.append(CGSize(width: newW, height: newH))
+        }
+
+        let totalSize: CGSize = scaledSizes.reduce(into: .zero) { partial, size in
             switch direction {
             case .horizontal:
-                return CGSize(width: partial.width + size.width, height: max(partial.height, size.height))
+                partial.width += size.width
+                partial.height = max(partial.height, size.height)
             case .vertical:
-                return CGSize(width: max(partial.width, size.width), height: partial.height + size.height)
+                partial.width = max(partial.width, size.width)
+                partial.height += size.height
             }
         }
+
+        guard totalSize.width > 0, totalSize.height > 0 else { return nil }
+
         guard let ctx = CGContext(data: nil,
                                   width: Int(totalSize.width),
                                   height: Int(totalSize.height),
@@ -455,18 +555,19 @@ class AppViewModel: ObservableObject {
             return nil
         }
         ctx.interpolationQuality = .high
-        var current = CGPoint.zero
-        for cg in cgImages {
-            let size = CGSize(width: cg.width, height: cg.height)
-            let rect = CGRect(origin: current, size: size)
+
+        var origin = CGPoint.zero
+        for (cg, size) in zip(cgImages, scaledSizes) {
+            let rect = CGRect(origin: origin, size: size)
             ctx.draw(cg, in: rect)
             switch direction {
             case .horizontal:
-                current.x += size.width
+                origin.x += size.width
             case .vertical:
-                current.y += size.height
+                origin.y += size.height
             }
         }
+
         guard let combined = ctx.makeImage() else { return nil }
         #if os(macOS)
         return NSImage(cgImage: combined, size: totalSize)

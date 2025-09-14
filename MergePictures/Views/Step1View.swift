@@ -121,6 +121,45 @@ struct Step1View: View {
             } header: { Text("Basic Settings") } footer: { Text("Choose how many images to merge and the stacking direction.") }
 
             Section {
+                Toggle("Enable Uniform Scaling", isOn: $viewModel.enableUniformScaling)
+                HStack {
+                    Text("Uniform Dimension")
+                    Spacer()
+                    Picker("Uniform Dimension", selection: $viewModel.scaleMode) {
+                        ForEach(ScaleMode.allCases) { mode in
+                            Text(LocalizedStringKey(mode.rawValue)).tag(mode)
+                        }
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                    .frame(maxWidth: 300, alignment: .trailing)
+                    .disabled(!viewModel.enableUniformScaling)
+                    .help("Scale images so widths or heights match before merging.")
+                }
+                HStack {
+                    Text("Scale Strategy")
+                    Spacer()
+                    Picker("Scale Strategy", selection: $viewModel.scaleStrategy) {
+                        ForEach(ScaleStrategy.allCases) { s in
+                            Text(LocalizedStringKey(s.rawValue)).tag(s)
+                        }
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                    .frame(maxWidth: 300, alignment: .trailing)
+                    .disabled(!viewModel.enableUniformScaling)
+                    .help("Target dimension: min (shrink), max (enlarge), or average.")
+                }
+            } header: { Text("Uniform Scaling") } footer: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Enable and configure proportional scaling to unify widths or heights.")
+                    if viewModel.enableUniformScaling {
+                        Text(LocalizedStringKey(viewModel.scaleStrategyDescriptionKey))
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+
+            Section {
                 Button("Swap Order") {
                     viewModel.rotateImages()
                 }
@@ -179,6 +218,42 @@ struct Step1View: View {
             .pickerStyle(SegmentedPickerStyle())
             .frame(maxWidth: .infinity, alignment: .leading)
             .help("Vertical stacks top-to-bottom; Horizontal side-by-side.")
+
+            // Uniform Scaling group (macOS)
+            Text("Uniform Scaling").bold().padding(.top)
+            Toggle("Enable Uniform Scaling", isOn: $viewModel.enableUniformScaling)
+            HStack {
+                Text("Uniform Dimension")
+                Spacer()
+                Picker("Uniform Dimension", selection: $viewModel.scaleMode) {
+                    ForEach(ScaleMode.allCases) { mode in
+                        Text(LocalizedStringKey(mode.rawValue)).tag(mode)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .frame(maxWidth: 360, alignment: .trailing)
+                .disabled(!viewModel.enableUniformScaling)
+                .help("Scale images so widths or heights match before merging.")
+            }
+
+            HStack {
+                Text("Scale Strategy")
+                Spacer()
+                Picker("Scale Strategy", selection: $viewModel.scaleStrategy) {
+                    ForEach(ScaleStrategy.allCases) { s in
+                        Text(LocalizedStringKey(s.rawValue)).tag(s)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .frame(maxWidth: 360, alignment: .trailing)
+                .disabled(!viewModel.enableUniformScaling)
+                .help("Target dimension: min (shrink), max (enlarge), or average.")
+            }
+            Text(LocalizedStringKey(viewModel.scaleStrategyDescriptionKey))
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .disabled(!viewModel.enableUniformScaling)
 
             Text("Advance Settings").bold().padding(.top)
 
