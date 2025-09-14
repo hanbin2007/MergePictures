@@ -87,6 +87,10 @@ class AppViewModel: ObservableObject {
     @Published var stepIndicatorUnlockedAll: Bool = false
     // Controls presenting the image list sheet on iOS compact layouts
     @Published var presentImageListSheet: Bool = false
+    // Preview overlay state
+    @Published var isPreviewPresented: Bool = false
+    @Published var previewURLs: [URL] = []
+    @Published var previewStartIndex: Int = 0
 
     private let fileManager = FileManager.default
     private let previewMergeDimension: CGFloat = 2048
@@ -94,6 +98,7 @@ class AppViewModel: ObservableObject {
     private var mergeCacheDirectory: URL?
     private var exportCacheDirectory: URL?
     private var importCacheDirectory: URL?
+    private var quickLookCacheDirectory: URL?
     private lazy var importDateFormatter: DateFormatter = {
         let df = DateFormatter()
         df.locale = Locale(identifier: "en_US_POSIX")
@@ -119,6 +124,52 @@ class AppViewModel: ObservableObject {
         cleanupDirectory(mergeCacheDirectory)
         cleanupDirectory(exportCacheDirectory)
         cleanupDirectory(importCacheDirectory)
+        cleanupDirectory(quickLookCacheDirectory)
+    }
+
+    // MARK: - Preview Presentation
+
+    /// Presents the preview overlay for all original images, starting at the tapped item.
+    func presentPreviewForOriginal(_ item: ImageItem) {
+        guard let start = images.firstIndex(where: { $0.id == item.id }) else { return }
+        previewURLs = prepareQuickLookURLs(images.map { $0.url })
+        previewStartIndex = start
+        isPreviewPresented = true
+    }
+
+    /// Presents the preview overlay for merged preview images, starting at the given index.
+    func presentPreviewForMerged(at index: Int) {
+        guard !mergedImageURLs.isEmpty, mergedImageURLs.indices.contains(index) else { return }
+        previewURLs = prepareQuickLookURLs(mergedImageURLs)
+        previewStartIndex = index
+        isPreviewPresented = true
+    }
+
+    /// Returns URLs suitable for Quick Look: ensures standard image extensions; otherwise, copies to a temp PNG.
+    private func prepareQuickLookURLs(_ urls: [URL]) -> [URL] {
+        let allowedExts: Set<String> = ["jpg","jpeg","png","gif","heic","heif","tif","tiff","bmp","webp"]
+        var results: [URL] = []
+        if quickLookCacheDirectory == nil {
+            quickLookCacheDirectory = createTempDirectory(prefix: "quicklook")
+        }
+        let qlDir = quickLookCacheDirectory
+        for (idx, u) in urls.enumerated() {
+            let ext = u.pathExtension.lowercased()
+            if allowedExts.contains(ext), fileManager.fileExists(atPath: u.path) {
+                results.append(u)
+                continue
+            }
+            if let img = loadPlatformImage(from: u) ?? loadPlatformImage(from: u, maxDimension: 4096),
+               let dir = qlDir {
+                let copyURL = dir.appendingPathComponent("ql_\(idx).png")
+                try? fileManager.removeItem(at: copyURL)
+                try? savePlatformImage(img, to: copyURL)
+                results.append(copyURL)
+            } else {
+                results.append(u)
+            }
+        }
+        return results
     }
 
     /// Removes any previously merged results and deletes cached files.
@@ -274,9 +325,21 @@ class AppViewModel: ObservableObject {
         for item in items {
             if let data = try? await item.loadTransferable(type: Data.self) {
                 let addedAt = Date()
-                let fileName = "photo-\(importDateFormatter.string(from: addedAt)).img"
+                // Determine proper extension from data; default to png
+                var ext = "png"
+                if let src = CGImageSourceCreateWithData(data as CFData, nil),
+                   let uti = CGImageSourceGetType(src) as String?,
+                   let ut = UTType(uti), let preferred = ut.preferredFilenameExtension {
+                    ext = preferred
+                }
+                let fileName = "photo-\(importDateFormatter.string(from: addedAt)).\(ext)"
                 let url = dir.appendingPathComponent(fileName)
-                try? data.write(to: url)
+                // Normalize by re-encoding to PNG/JPEG if needed for safety
+                if let img = PlatformImage(data: data) {
+                    try? savePlatformImage(img, to: url)
+                } else {
+                    try? data.write(to: url)
+                }
                 if let preview = loadPlatformImage(from: url, maxDimension: 1024) {
                     newItems.append(ImageItem(url: url, preview: preview, addedDate: addedAt, displayName: fileName))
                 }

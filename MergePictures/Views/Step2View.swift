@@ -24,7 +24,8 @@ struct Step2View: View {
                                 url: pair.element,
                                 index: pair.offset,
                                 scale: viewModel.step2PreviewScale,
-                                colorScheme: colorScheme
+                                colorScheme: colorScheme,
+                                tapAction: { viewModel.presentPreviewForMerged(at: pair.offset) }
                             )
                         }
                     }
@@ -76,6 +77,7 @@ private struct MergedThumbnail: View {
     let colorScheme: ColorScheme
 
     @State private var image: PlatformImage?
+    var tapAction: () -> Void = {}
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -89,6 +91,8 @@ private struct MergedThumbnail: View {
                 }
             }
             .frame(height: 150 * scale)
+            .contentShape(Rectangle())
+            .onTapGesture(perform: tapAction)
 
             if image != nil {
                 Text("\(index + 1)")

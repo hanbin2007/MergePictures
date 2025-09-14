@@ -268,6 +268,37 @@ struct ContentView: View {
             }
         }
         #endif
+        // Global preview using system Quick Look on iOS; custom fallback on macOS
+        .sheet(isPresented: Binding(get: { viewModel.isPreviewPresented }, set: { viewModel.isPreviewPresented = $0 })) {
+            #if os(iOS)
+            NavigationStack {
+                QuickLookPreview(
+                    urls: viewModel.previewURLs,
+                    isPresented: Binding(get: { viewModel.isPreviewPresented }, set: { viewModel.isPreviewPresented = $0 }),
+                    initialIndex: viewModel.previewStartIndex
+                )
+                .navigationTitle("Preview")
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") { viewModel.isPreviewPresented = false }
+                    }
+                }
+            }
+            .interactiveDismissDisabled(true)
+            .presentationDragIndicator(.hidden)
+            #else
+            NavigationStack {
+                ImagePreviewer(
+                    urls: viewModel.previewURLs,
+                    isPresented: Binding(get: { viewModel.isPreviewPresented }, set: { viewModel.isPreviewPresented = $0 }),
+                    initialIndex: viewModel.previewStartIndex
+                )
+                .navigationTitle("Preview")
+                .toolbar { ToolbarItem(placement: .automatic) { Button("Done") { viewModel.isPreviewPresented = false } } }
+            }
+            .presentationDragIndicator(.visible)
+            #endif
+        }
     }
 
 #if os(iOS)

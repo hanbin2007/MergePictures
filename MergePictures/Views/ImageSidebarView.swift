@@ -16,9 +16,12 @@ struct ImageSidebarView: View {
                     #if os(macOS)
                     SidebarRow(item: item,
                                hoveredId: $hoveredId,
-                               deleteAction: { delete(item) })
+                               deleteAction: { delete(item) },
+                               openAction: { viewModel.presentPreviewForOriginal(item) })
                     #else
-                    SidebarRow(item: item, deleteAction: { delete(item) })
+                    SidebarRow(item: item,
+                               deleteAction: { delete(item) },
+                               openAction: { viewModel.presentPreviewForOriginal(item) })
                     #endif
                 }
                 .onMove(perform: move)
@@ -62,17 +65,26 @@ private struct SidebarRow: View {
     let item: ImageItem
     @Binding var hoveredId: UUID?
     var deleteAction: () -> Void
+    var openAction: () -> Void
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(nsImage: item.preview)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 40, height: 40)
-                .cornerRadius(4)
-            Text(item.displayName)
-                .lineLimit(1)
+            // Clickable content area (thumbnail + name)
+            HStack(spacing: 8) {
+                Image(nsImage: item.preview)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 40)
+                    .cornerRadius(4)
+                Text(item.displayName)
+                    .lineLimit(1)
+            }
+            .contentShape(Rectangle())
+            .onTapGesture(perform: openAction)
+
             Spacer()
+
+            // Delete button
             Button(action: deleteAction) {
                 Image(systemName: "trash")
                     .foregroundColor(.primary)
@@ -93,6 +105,7 @@ private struct SidebarRow: View {
 private struct SidebarRow: View {
     let item: ImageItem
     var deleteAction: () -> Void
+    var openAction: () -> Void
 
     var body: some View {
         HStack(spacing: 8) {
@@ -105,6 +118,8 @@ private struct SidebarRow: View {
                 .lineLimit(1)
             Spacer()
         }
+        .contentShape(Rectangle())
+        .onTapGesture(perform: openAction)
         .padding(.vertical, 2)
         .padding(.horizontal, 4)
         .swipeActions { Button(role: .destructive, action: deleteAction) { Image(systemName: "trash") } }
