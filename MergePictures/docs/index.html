@@ -11,9 +11,15 @@
     .cn { color: #555; }
     .card { border: 1px solid #e3e5e8; border-radius: 10px; padding: 16px; margin: 16px 0; }
     ul { margin: 0.4em 0 0.8em 1.2em; }
+    .banner { position: sticky; top: 0; z-index: 1000; background: #fff8e1; color: #5c4600; border: 1px solid #f0d98c; border-radius: 10px; padding: 12px 16px; margin: 0 0 16px 0; box-shadow: 0 1px 0 rgba(0,0,0,0.02); }
+    .banner b { margin-right: 4px; }
   </style>
   </head>
   <body>
+  <div class="banner" role="note" aria-live="polite">
+    <b>Notice:</b> Preview is for reference only and does not represent final export quality.
+    <span class="cn"><b>提示：</b> 预览不代表最终质量，导出效果以最终文件为准。</span>
+  </div>
   <h1>MergePictures — User Guide</h1>
 
   <div class="card">
@@ -21,6 +27,7 @@
     <ul>
       <li><b>Merge Count</b>: Number of images to combine per result.</li>
       <li><b>Direction</b>: Vertical (top-to-bottom) or Horizontal (side-by-side).</li>
+      <li><b>Preview Quality</b>: Low / Medium / High — adjusts preview speed and clarity (does not affect final export quality).</li>
       <li><b>Uniform Scaling</b>: Toggle proportional scaling on/off. When on, images are scaled so a chosen dimension matches before merging.</li>
       <li><b>Uniform Dimension</b>: Proportionally scale all images so either widths or heights match before merging.
         <ul>
@@ -44,6 +51,7 @@
     <ul>
       <li><b>合并数量</b>：每张合成图片包含的源图数量。</li>
       <li><b>方向</b>：纵向（从上到下）或横向（并排）。</li>
+      <li><b>预览质量</b>：低 / 中 / 高，用于调节预览速度与清晰度（不影响最终导出质量）。</li>
       <li><b>统一缩放</b>：可开关。开启后，将在合并前对图片进行等比例缩放。</li>
       <li><b>统一维度</b>：合并前将所有图片等比例缩放，使其宽度或高度一致。
         <ul>

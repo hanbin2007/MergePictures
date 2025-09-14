@@ -23,7 +23,9 @@ public func loadPlatformImage(from url: URL, maxDimension: CGFloat? = nil) -> Pl
     guard let src = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
     var options: [CFString: Any] = [
         kCGImageSourceCreateThumbnailFromImageAlways: true,
-        kCGImageSourceCreateThumbnailWithTransform: true
+        kCGImageSourceCreateThumbnailWithTransform: true,
+        kCGImageSourceShouldCache: false,
+        kCGImageSourceShouldCacheImmediately: false
     ]
     if let max = maxDimension {
         options[kCGImageSourceThumbnailMaxPixelSize] = max

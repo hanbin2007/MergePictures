@@ -31,7 +31,10 @@ struct ContentView: View {
             }
         } else {
             NavigationStack {
+                // Force inline title style to avoid oversized nav bar
                 detailContent
+                    .navigationBarTitleDisplayMode(.inline)
+                    .navigationTitle("")
             }
         }
         #endif
@@ -181,48 +184,15 @@ struct ContentView: View {
             .background(.bar)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-//        .padding(.top, 0)
-        .safeAreaInset(edge: .top) {
-            VStack(spacing: 8) {
-                ZStack {
-                    // Centered step indicator
-                    StepIndicator(current: $viewModel.step, viewModel: viewModel)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                    // Left-aligned button (iOS compact only)
-                    #if os(iOS)
-                    HStack {
-                        if hSizeClass == .compact && !(isiOS26OrNewer && isPadDevice) {
-                            Button {
-                                viewModel.presentImageListSheet = true
-                            } label: {
-                                Group {
-                                    if #available(iOS 17.0, *) {
-                                        Image(systemName: "photo.stack")
-                                    } else {
-                                        Image(systemName: "square.grid.2x2")
-                                    }
-                                }
-                                .imageScale(.large)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        Spacer()
-                    }
-                    #endif
-                }
-                .padding(.horizontal)
-                Divider()
-            }
-            .background(.bar)
-        }
         // Allow children to request opening the sidebar when needed
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("OpenSidebar"))) { _ in
             splitViewVisibility = .all
         }
         #if os(iOS)
         .toolbar {
+            // Leading button for image list on compact layouts
             ToolbarItem(placement: .topBarLeading) {
-                if isiOS26OrNewer && isPadDevice && hSizeClass == .compact {
+                if hSizeClass == .compact {
                     Button {
                         viewModel.presentImageListSheet = true
                     } label: {
@@ -233,6 +203,19 @@ struct ContentView: View {
                         }
                     }
                 }
+            }
+            // Center step indicator inside navigation bar
+            ToolbarItem(placement: .principal) {
+                StepIndicator(current: $viewModel.step, viewModel: viewModel)
+            }
+            // Settings on the right
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    viewModel.presentSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .accessibilityLabel(LocalizedStringKey("Settings"))
             }
         }
         #endif
@@ -245,6 +228,9 @@ struct ContentView: View {
             }
         }
         #endif
+        .sheet(isPresented: Binding(get: { viewModel.presentSettings }, set: { viewModel.presentSettings = $0 })) {
+            SettingsView(viewModel: viewModel)
+        }
         #if os(macOS)
         .toolbar {
             ToolbarItem(placement: .navigation) {
@@ -265,6 +251,15 @@ struct ContentView: View {
                 }
                 .frame(width: 150)
                 .tint(.accentColor)
+            }
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    viewModel.presentSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .help(LocalizedStringKey("Settings"))
+                .accessibilityLabel(LocalizedStringKey("Settings"))
             }
         }
         #endif

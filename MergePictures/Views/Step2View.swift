@@ -32,7 +32,18 @@ struct Step2View: View {
                     .animation(.default, value: viewModel.step2PreviewScale)
                 }
             }
-        }.padding()
+        }
+        .padding()
+        .overlay(alignment: .top) {
+            if viewModel.showPreviewNotice {
+                NoticeBanner(
+                    closeAction: { viewModel.dismissPreviewNoticeOnce() },
+                    neverShowAction: { viewModel.suppressPreviewNotice() }
+                )
+                .padding(.horizontal)
+                .padding(.top, 8)
+            }
+        }
         .onAppear {
             if viewModel.mergedImageURLs.isEmpty {
                 viewModel.batchMerge()
