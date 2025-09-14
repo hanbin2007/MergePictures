@@ -59,3 +59,16 @@
 "Scale Strategy Detail Min" = "最小：将图片缩放到组内最小的宽/高（不放大）。";
 "Scale Strategy Detail Max" = "最大：将图片缩放到组内最大的宽/高（不缩小）。";
 "Scale Strategy Detail Average" = "平均：将图片缩放到组内平均的宽/高。";
+"Preview Notice" = "预览仅供参考，最终导出质量以文件为准。";
+"Don't Show Again" = "不再显示";
+"Close" = "关闭";
+"Settings" = "设置";
+"Reset Hidden Notices" = "重置“不再显示”";
+"Reset Hidden Notices Detail" = "恢复之前被隐藏的提示，包括预览横幅。";
+"Reset Now" = "立即重置";
+"Preview Quality" = "预览质量";
+"Low" = "低";
+"Medium" = "中";
+"High" = "高";
+"Importing…" = "正在导入…";
+"Preview Quality Detail" = "影响预览速度与清晰度，不影响最终导出质量。";

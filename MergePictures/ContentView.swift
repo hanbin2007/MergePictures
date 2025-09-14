@@ -234,6 +234,14 @@ struct ContentView: View {
                     }
                 }
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    viewModel.presentSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .accessibilityLabel(LocalizedStringKey("Settings"))
+            }
         }
         #endif
         #if os(iOS)
@@ -245,6 +253,9 @@ struct ContentView: View {
             }
         }
         #endif
+        .sheet(isPresented: Binding(get: { viewModel.presentSettings }, set: { viewModel.presentSettings = $0 })) {
+            SettingsView(viewModel: viewModel)
+        }
         #if os(macOS)
         .toolbar {
             ToolbarItem(placement: .navigation) {
@@ -265,6 +276,15 @@ struct ContentView: View {
                 }
                 .frame(width: 150)
                 .tint(.accentColor)
+            }
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    viewModel.presentSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .help(LocalizedStringKey("Settings"))
+                .accessibilityLabel(LocalizedStringKey("Settings"))
             }
         }
         #endif

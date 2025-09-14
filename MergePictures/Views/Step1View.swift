@@ -23,6 +23,22 @@ struct Step1View: View {
                     .frame(height: proxy.size.height * 0.5)
             }
         }
+        .overlay(alignment: .top) {
+            if viewModel.showPreviewNotice {
+                NoticeBanner(
+                    closeAction: { viewModel.dismissPreviewNoticeOnce() },
+                    neverShowAction: { viewModel.suppressPreviewNotice() }
+                )
+                .padding(.horizontal)
+                .padding(.top, 8)
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            if viewModel.isImporting {
+                ImportProgressHUD(progress: viewModel.importProgress)
+                    .padding()
+            }
+        }
         .onChange(of: selectedItems) { newItems in
             Task {
                 await viewModel.addImages(items: newItems)
@@ -35,6 +51,22 @@ struct Step1View: View {
             Divider()
             settingsSection
                 .frame(width: 280)
+        }
+        .overlay(alignment: .top) {
+            if viewModel.showPreviewNotice {
+                NoticeBanner(
+                    closeAction: { viewModel.dismissPreviewNoticeOnce() },
+                    neverShowAction: { viewModel.suppressPreviewNotice() }
+                )
+                .padding(.horizontal)
+                .padding(.top, 8)
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            if viewModel.isImporting {
+                ImportProgressHUD(progress: viewModel.importProgress)
+                    .padding()
+            }
         }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.image], allowsMultipleSelection: true) { result in
             if case let .success(urls) = result {

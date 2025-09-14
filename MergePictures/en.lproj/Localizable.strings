@@ -59,3 +59,16 @@
 "Scale Strategy Detail Min" = "Min: Shrinks to the smallest width/height (prevents upscaling).";
 "Scale Strategy Detail Max" = "Max: Enlarges to the largest width/height (prevents downscaling).";
 "Scale Strategy Detail Average" = "Average: Scales to the average width/height across the group.";
+"Preview Notice" = "Preview is for reference only and may not match final export quality.";
+"Don't Show Again" = "Don't Show Again";
+"Close" = "Close";
+"Settings" = "Settings";
+"Reset Hidden Notices" = "Reset 'Don't Show Again'";
+"Reset Hidden Notices Detail" = "Bring back previously hidden notices, including the preview banner.";
+"Reset Now" = "Reset Now";
+"Preview Quality" = "Preview Quality";
+"Low" = "Low";
+"Medium" = "Medium";
+"High" = "High";
+"Importing…" = "Importing…";
+"Preview Quality Detail" = "Affects preview speed and clarity; does not affect final export quality.";

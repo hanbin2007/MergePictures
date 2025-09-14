@@ -88,12 +88,70 @@ class AppViewModel: ObservableObject {
     // Controls presenting the image list sheet on iOS compact layouts
     @Published var presentImageListSheet: Bool = false
     // Preview overlay state
-    @Published var isPreviewPresented: Bool = false
+    @Published var isPreviewPresented: Bool = false {
+        didSet {
+            if isPreviewPresented == false {
+                qlPrefetchTask?.cancel()
+                qlPrefetchTask = nil
+            }
+        }
+    }
     @Published var previewURLs: [URL] = []
     @Published var previewStartIndex: Int = 0
 
+    // Notice banner state
+    @Published var showPreviewNotice: Bool = true
+    private let hidePreviewNoticeKey = "hidePreviewNotice"
+    // Settings presentation
+    @Published var presentSettings: Bool = false
+
+    // Preview quality setting (persisted)
+    private let previewQualityKey = "previewQuality"
+    @Published var previewQuality: PreviewQuality = .high {
+        didSet {
+            UserDefaults.standard.set(previewQuality.rawValue, forKey: previewQualityKey)
+            clearMergedResults()
+            updatePreview()
+            if step == .previewAll && !isMerging {
+                batchMerge()
+            }
+        }
+    }
+
+    // Import progress state
+    @Published var isImporting: Bool = false
+    @Published var importProgress: Double = 0
+
+    // Quick Look prefetch management
+    private var qlPrefetchTask: Task<Void, Never>?
+    private let qlPrefetchRadius: Int = 1
+
+    init() {
+        // Persisted user choice: if hidden once-and-for-all, don't show
+        showPreviewNotice = !UserDefaults.standard.bool(forKey: hidePreviewNoticeKey)
+        if let raw = UserDefaults.standard.string(forKey: previewQualityKey),
+           let q = PreviewQuality(rawValue: raw) {
+            previewQuality = q
+        } else {
+            previewQuality = .high
+        }
+    }
+
     private let fileManager = FileManager.default
-    private let previewMergeDimension: CGFloat = 2048
+    private var previewMergeDimension: CGFloat {
+        switch previewQuality {
+        case .low: return 512
+        case .medium: return 1024
+        case .high: return 2048
+        }
+    }
+    private var previewDecodeDimensionStep1: CGFloat {
+        switch previewQuality {
+        case .low: return 512
+        case .medium: return 1024
+        case .high: return 2048
+        }
+    }
     private var exportProcessingDimension: CGFloat { processingDimension(for: maxFileSizeKB) }
     private var mergeCacheDirectory: URL?
     private var exportCacheDirectory: URL?
@@ -132,7 +190,8 @@ class AppViewModel: ObservableObject {
     /// Presents the preview overlay for all original images, starting at the tapped item.
     func presentPreviewForOriginal(_ item: ImageItem) {
         guard let start = images.firstIndex(where: { $0.id == item.id }) else { return }
-        previewURLs = prepareQuickLookURLs(images.map { $0.url })
+        let urls = images.map { $0.url }
+        startQuickLookPrefetch(urls: urls, startIndex: start)
         previewStartIndex = start
         isPreviewPresented = true
     }
@@ -140,36 +199,73 @@ class AppViewModel: ObservableObject {
     /// Presents the preview overlay for merged preview images, starting at the given index.
     func presentPreviewForMerged(at index: Int) {
         guard !mergedImageURLs.isEmpty, mergedImageURLs.indices.contains(index) else { return }
-        previewURLs = prepareQuickLookURLs(mergedImageURLs)
+        startQuickLookPrefetch(urls: mergedImageURLs, startIndex: index)
         previewStartIndex = index
         isPreviewPresented = true
     }
 
-    /// Returns URLs suitable for Quick Look: ensures standard image extensions; otherwise, copies to a temp PNG.
-    private func prepareQuickLookURLs(_ urls: [URL]) -> [URL] {
+    // MARK: Notice banner actions
+    func dismissPreviewNoticeOnce() {
+        showPreviewNotice = false
+    }
+    func suppressPreviewNotice() {
+        UserDefaults.standard.set(true, forKey: hidePreviewNoticeKey)
+        showPreviewNotice = false
+    }
+
+    func resetPreviewNoticeSuppression() {
+        UserDefaults.standard.removeObject(forKey: hidePreviewNoticeKey)
+        showPreviewNotice = true
+    }
+
+    // MARK: - Quick Look on-demand preparation
+    private func quickLookCompatibleURL(for url: URL, index: Int) -> URL {
         let allowedExts: Set<String> = ["jpg","jpeg","png","gif","heic","heif","tif","tiff","bmp","webp"]
-        var results: [URL] = []
+        let ext = url.pathExtension.lowercased()
+        guard !(allowedExts.contains(ext) && fileManager.fileExists(atPath: url.path)) else {
+            return url
+        }
         if quickLookCacheDirectory == nil {
             quickLookCacheDirectory = createTempDirectory(prefix: "quicklook")
         }
-        let qlDir = quickLookCacheDirectory
-        for (idx, u) in urls.enumerated() {
-            let ext = u.pathExtension.lowercased()
-            if allowedExts.contains(ext), fileManager.fileExists(atPath: u.path) {
-                results.append(u)
-                continue
+        guard let dir = quickLookCacheDirectory else { return url }
+        if let img = loadPlatformImage(from: url) ?? loadPlatformImage(from: url, maxDimension: 4096) {
+            let copyURL = dir.appendingPathComponent("ql_\(index).png")
+            try? fileManager.removeItem(at: copyURL)
+            try? savePlatformImage(img, to: copyURL)
+            return copyURL
+        }
+        return url
+    }
+
+    private func startQuickLookPrefetch(urls: [URL], startIndex: Int) {
+        // Base assignment without heavy processing
+        previewURLs = urls
+        // Cancel any ongoing prefetch
+        qlPrefetchTask?.cancel()
+        qlPrefetchTask = Task(priority: .utility) { [weak self] in
+            guard let self = self else { return }
+            // Ensure selected index is ready first
+            if Task.isCancelled { return }
+            let prepared = self.quickLookCompatibleURL(for: urls[startIndex], index: startIndex)
+            await MainActor.run {
+                if self.previewURLs.indices.contains(startIndex) {
+                    self.previewURLs[startIndex] = prepared
+                }
             }
-            if let img = loadPlatformImage(from: u) ?? loadPlatformImage(from: u, maxDimension: 4096),
-               let dir = qlDir {
-                let copyURL = dir.appendingPathComponent("ql_\(idx).png")
-                try? fileManager.removeItem(at: copyURL)
-                try? savePlatformImage(img, to: copyURL)
-                results.append(copyURL)
-            } else {
-                results.append(u)
+            // Prefetch immediate neighbors silently
+            let neighbors: [Int] = [startIndex - 1, startIndex + 1].filter { urls.indices.contains($0) }
+            for i in neighbors {
+                if Task.isCancelled { break }
+                let prep = self.quickLookCompatibleURL(for: urls[i], index: i)
+                if Task.isCancelled { break }
+                await MainActor.run {
+                    if self.previewURLs.indices.contains(i) {
+                        self.previewURLs[i] = prep
+                    }
+                }
             }
         }
-        return results
     }
 
     /// Removes any previously merged results and deletes cached files.
@@ -284,69 +380,90 @@ class AppViewModel: ObservableObject {
     }
 
     func addImages(urls: [URL]) {
-        #if os(iOS)
-        let newItems = urls.compactMap { url -> ImageItem? in
-            var needsStop = false
-            if url.startAccessingSecurityScopedResource() {
-                needsStop = true
-            }
-            defer {
-                if needsStop {
-                    url.stopAccessingSecurityScopedResource()
+        guard !urls.isEmpty else { return }
+        isImporting = true
+        importProgress = 0
+        let total = urls.count
+        DispatchQueue.global(qos: .userInitiated).async {
+            var collected: [ImageItem] = []
+            for (idx, url) in urls.enumerated() {
+                autoreleasepool {
+                    #if os(iOS)
+                    var needsStop = false
+                    if url.startAccessingSecurityScopedResource() {
+                        needsStop = true
+                    }
+                    defer { if needsStop { url.stopAccessingSecurityScopedResource() } }
+                    #endif
+                    guard let preview = loadPlatformImage(from: url, maxDimension: 256) else { return }
+                    let addedAt = Date()
+                    let ext = url.pathExtension.isEmpty ? "img" : url.pathExtension
+                    let name = "photo-\(self.importDateFormatter.string(from: addedAt)).\(ext)"
+                    collected.append(ImageItem(url: url, preview: preview, addedDate: addedAt, displayName: name))
+                    DispatchQueue.main.async {
+                        self.importProgress = Double(idx + 1) / Double(total)
+                    }
                 }
             }
-            guard let preview = loadPlatformImage(from: url, maxDimension: 1024) else { return nil }
-            let addedAt = Date()
-            let ext = url.pathExtension.isEmpty ? "img" : url.pathExtension
-            let name = "photo-\(importDateFormatter.string(from: addedAt)).\(ext)"
-            return ImageItem(url: url, preview: preview, addedDate: addedAt, displayName: name)
+            DispatchQueue.main.async {
+                self.images.append(contentsOf: collected)
+                self.sortImages()
+                self.isImporting = false
+            }
         }
-        #else
-        let newItems = urls.compactMap { url -> ImageItem? in
-            guard let preview = loadPlatformImage(from: url, maxDimension: 1024) else { return nil }
-            let addedAt = Date()
-            let ext = url.pathExtension.isEmpty ? "img" : url.pathExtension
-            let name = "photo-\(importDateFormatter.string(from: addedAt)).\(ext)"
-            return ImageItem(url: url, preview: preview, addedDate: addedAt, displayName: name)
-        }
-        #endif
-        images.append(contentsOf: newItems)
-        sortImages()
     }
 
 #if os(iOS)
-    @MainActor
     func addImages(items: [PhotosPickerItem]) async {
-        var newItems: [ImageItem] = []
-        if importCacheDirectory == nil {
-            importCacheDirectory = createTempDirectory(prefix: "import")
+        await MainActor.run {
+            isImporting = true
+            importProgress = 0
+            if importCacheDirectory == nil {
+                importCacheDirectory = createTempDirectory(prefix: "import")
+            }
         }
-        guard let dir = importCacheDirectory else { return }
-        for item in items {
+        guard let dir = await MainActor.run(body: { importCacheDirectory }) else { return }
+        let total = max(items.count, 1)
+        var results: [ImageItem] = []
+        results.reserveCapacity(items.count)
+        for (idx, item) in items.enumerated() {
             if let data = try? await item.loadTransferable(type: Data.self) {
                 let addedAt = Date()
-                // Determine proper extension from data; default to png
-                var ext = "png"
+                // Determine proper extension from data; default to jpeg for broad compatibility
+                var ext = "jpg"
+                var ut: UTType?
                 if let src = CGImageSourceCreateWithData(data as CFData, nil),
-                   let uti = CGImageSourceGetType(src) as String?,
-                   let ut = UTType(uti), let preferred = ut.preferredFilenameExtension {
+                   let uti = CGImageSourceGetType(src) as String? {
+                    ut = UTType(uti)
+                }
+                if let preferred = ut?.preferredFilenameExtension {
                     ext = preferred
                 }
                 let fileName = "photo-\(importDateFormatter.string(from: addedAt)).\(ext)"
                 let url = dir.appendingPathComponent(fileName)
-                // Normalize by re-encoding to PNG/JPEG if needed for safety
-                if let img = PlatformImage(data: data) {
-                    try? savePlatformImage(img, to: url)
-                } else {
-                    try? data.write(to: url)
+                // Fast-path: write original data; avoid re-encoding
+                do {
+                    try data.write(to: url)
+                } catch {
+                    // Fallback: attempt to re-encode if write fails
+                    if let img = PlatformImage(data: data) {
+                        try? savePlatformImage(img, to: url)
+                    }
                 }
-                if let preview = loadPlatformImage(from: url, maxDimension: 1024) {
-                    newItems.append(ImageItem(url: url, preview: preview, addedDate: addedAt, displayName: fileName))
+                // Smaller thumbnail for sidebar performance
+                if let preview = loadPlatformImage(from: url, maxDimension: 256) {
+                    results.append(ImageItem(url: url, preview: preview, addedDate: addedAt, displayName: fileName))
+                }
+                await MainActor.run {
+                    importProgress = Double(idx + 1) / Double(total)
                 }
             }
         }
-        images.append(contentsOf: newItems)
-        sortImages()
+        await MainActor.run {
+            images.append(contentsOf: results)
+            sortImages()
+            isImporting = false
+        }
     }
 #endif
 
@@ -406,7 +523,7 @@ class AppViewModel: ObservableObject {
     }
 
     func updatePreview() {
-        let previewSource = images.prefix(mergeCount).compactMap { loadPlatformImage(from: $0.url, maxDimension: 1024) }
+        let previewSource = images.prefix(mergeCount).compactMap { loadPlatformImage(from: $0.url, maxDimension: previewDecodeDimensionStep1) }
         previewImage = merge(images: previewSource, direction: direction)
     }
 

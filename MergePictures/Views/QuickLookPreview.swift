@@ -20,7 +20,6 @@ struct QuickLookPreview: UIViewControllerRepresentable {
     func updateUIViewController(_ controller: QLPreviewController, context: Context) {
         context.coordinator.parent = self
         controller.reloadData()
-        controller.currentPreviewItemIndex = safeIndex(initialIndex)
     }
 
     private func safeIndex(_ i: Int) -> Int {
@@ -48,4 +47,3 @@ struct QuickLookPreview: UIViewControllerRepresentable {
     }
 }
 #endif
-
