@@ -8,8 +8,32 @@ struct ContentView: View {
     @StateObject private var viewModel: AppViewModel
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @State private var showStep1Inspector: Bool = true
+    @State private var showCompactControls: Bool = true
+    @State private var compactSheetDetent: PresentationDetent = .fraction(0.35)
     #endif
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
+    #if os(iOS)
+    private func updateCompactSheetVisibility() {
+        guard hSizeClass == .compact else {
+            if showCompactControls { showCompactControls = false }
+            return
+        }
+        let allowStep = (viewModel.step == .selectImages || viewModel.step == .previewAll)
+        let anyModal = viewModel.presentImageListSheet || viewModel.isPreviewPresented || viewModel.presentSettings
+        let shouldShow = allowStep && !anyModal
+        let wasShowing = showCompactControls
+        showCompactControls = shouldShow
+        if shouldShow && !wasShowing {
+            compactSheetDetent = .fraction(0.35)
+        }
+    }
+
+    private var shouldPresentCompactControls: Bool {
+        showCompactControls && hSizeClass == .compact &&
+        (viewModel.step == .selectImages || viewModel.step == .previewAll)
+    }
+    #endif
 
     init(viewModel: AppViewModel = AppViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -29,12 +53,39 @@ struct ContentView: View {
             } detail: {
                 detailContent
             }
+            // Top banner independent of scroll
+            .safeAreaInset(edge: .top) {
+                if viewModel.showPreviewNotice {
+                    NoticeBanner(
+                        closeAction: { viewModel.dismissPreviewNoticeOnce() },
+                        neverShowAction: { viewModel.suppressPreviewNotice() }
+                    )
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                }
+            }
+            // iPad (regular) Step1 inspector as system side panel
+            .inspector(isPresented: Binding(get: { viewModel.step == .selectImages && showStep1Inspector }, set: { showStep1Inspector = $0 })) {
+                Step1InspectorView(viewModel: viewModel)
+            }
+            .inspectorColumnWidth(min: 320, ideal: 360, max: 420)
         } else {
             NavigationStack {
                 // Force inline title style to avoid oversized nav bar
                 detailContent
                     .navigationBarTitleDisplayMode(.inline)
                     .navigationTitle("")
+            }
+            // Top banner independent of scroll (compact)
+            .safeAreaInset(edge: .top) {
+                if viewModel.showPreviewNotice {
+                    NoticeBanner(
+                        closeAction: { viewModel.dismissPreviewNoticeOnce() },
+                        neverShowAction: { viewModel.suppressPreviewNotice() }
+                    )
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                }
             }
         }
         #endif
@@ -184,6 +235,19 @@ struct ContentView: View {
             .background(.bar)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        #if os(macOS)
+        .overlay(alignment: .top) {
+            if viewModel.showPreviewNotice {
+                NoticeBanner(
+                    closeAction: { viewModel.dismissPreviewNoticeOnce() },
+                    neverShowAction: { viewModel.suppressPreviewNotice() }
+                )
+                .padding(.horizontal)
+                .padding(.top, 8)
+            }
+        }
+        #endif
+
         // Allow children to request opening the sidebar when needed
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("OpenSidebar"))) { _ in
             splitViewVisibility = .all
@@ -217,6 +281,48 @@ struct ContentView: View {
                 }
                 .accessibilityLabel(LocalizedStringKey("Settings"))
             }
+        }
+        #endif
+        #if os(iOS)
+        // Coordinate inspector with other sheets on iOS
+        .onChange(of: viewModel.presentImageListSheet) { isPresenting in
+            showStep1Inspector = (hSizeClass == .regular) ? !isPresenting : showStep1Inspector
+            updateCompactSheetVisibility()
+        }
+        .onChange(of: viewModel.isPreviewPresented) { isPresenting in
+            showStep1Inspector = (hSizeClass == .regular) ? !isPresenting : showStep1Inspector
+            updateCompactSheetVisibility()
+        }
+        .onChange(of: viewModel.presentSettings) { _ in
+            updateCompactSheetVisibility()
+        }
+        .onChange(of: viewModel.step) { _ in
+            updateCompactSheetVisibility()
+        }
+        .onAppear {
+            showStep1Inspector = (hSizeClass == .regular)
+            updateCompactSheetVisibility()
+        }
+        .onChange(of: hSizeClass) { _ in
+            updateCompactSheetVisibility()
+        }
+        .sheet(isPresented: Binding(get: { shouldPresentCompactControls }, set: { newValue in
+            if !newValue {
+                showCompactControls = false
+            }
+        })) {
+            NavigationStack {
+                ControlsFormView(viewModel: viewModel)
+                    .navigationTitle("")
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+            .presentationDetents([
+                .fraction(0.35),
+                .medium,
+                .large
+            ], selection: $compactSheetDetent)
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled(true)
         }
         #endif
         #if os(iOS)

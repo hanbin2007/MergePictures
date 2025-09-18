@@ -193,7 +193,19 @@ class AppViewModel: ObservableObject {
         let urls = images.map { $0.url }
         startQuickLookPrefetch(urls: urls, startIndex: start)
         previewStartIndex = start
+        // If an image list sheet is open (iPhone compact), close it first then present preview
+        #if os(iOS)
+        if presentImageListSheet {
+            presentImageListSheet = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) { [weak self] in
+                self?.isPreviewPresented = true
+            }
+        } else {
+            isPreviewPresented = true
+        }
+        #else
         isPreviewPresented = true
+        #endif
     }
 
     /// Presents the preview overlay for merged preview images, starting at the given index.
@@ -201,7 +213,18 @@ class AppViewModel: ObservableObject {
         guard !mergedImageURLs.isEmpty, mergedImageURLs.indices.contains(index) else { return }
         startQuickLookPrefetch(urls: mergedImageURLs, startIndex: index)
         previewStartIndex = index
+        #if os(iOS)
+        if presentImageListSheet {
+            presentImageListSheet = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) { [weak self] in
+                self?.isPreviewPresented = true
+            }
+        } else {
+            isPreviewPresented = true
+        }
+        #else
         isPreviewPresented = true
+        #endif
     }
 
     // MARK: Notice banner actions

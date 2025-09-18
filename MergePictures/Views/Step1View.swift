@@ -6,7 +6,6 @@ import PhotosUI
 struct Step1View: View {
     @ObservedObject var viewModel: AppViewModel
 #if os(iOS)
-    @State private var selectedItems: [PhotosPickerItem] = []
     @Environment(\.horizontalSizeClass) private var hSizeClass
 #else
     @State private var showImporter = false
@@ -14,25 +13,12 @@ struct Step1View: View {
 
     var body: some View {
         #if os(iOS)
-        GeometryReader { proxy in
-            VStack(spacing: 0) {
-                previewSection
-                    .frame(height: proxy.size.height * 0.5)
-                Divider()
-                settingsSection
-                    .frame(height: proxy.size.height * 0.5)
-            }
+        ZStack(alignment: .top) {
+            // Full-screen preview focus
+            previewSection
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .overlay(alignment: .top) {
-            if viewModel.showPreviewNotice {
-                NoticeBanner(
-                    closeAction: { viewModel.dismissPreviewNoticeOnce() },
-                    neverShowAction: { viewModel.suppressPreviewNotice() }
-                )
-                .padding(.horizontal)
-                .padding(.top, 8)
-            }
-        }
+        // Controls shown globally via ContentView on iPhone compact; nothing to mount here
         .overlay(alignment: .center) {
             Group {
                 if viewModel.isImporting {
@@ -43,28 +29,13 @@ struct Step1View: View {
             }
             .animation(.spring(response: 0.36, dampingFraction: 0.85, blendDuration: 0.1), value: viewModel.isImporting)
         }
-        .onChange(of: selectedItems) { newItems in
-            Task {
-                await viewModel.addImages(items: newItems)
-                selectedItems = []
-            }
-        }
+        // iPhone compact bottom sheet is managed by ContentView to avoid duplicate animation across steps
         #else
         HStack(spacing: 0) {
             previewSection
             Divider()
             settingsSection
                 .frame(width: 280)
-        }
-        .overlay(alignment: .top) {
-            if viewModel.showPreviewNotice {
-                NoticeBanner(
-                    closeAction: { viewModel.dismissPreviewNoticeOnce() },
-                    neverShowAction: { viewModel.suppressPreviewNotice() }
-                )
-                .padding(.horizontal)
-                .padding(.top, 8)
-            }
         }
         .overlay(alignment: .center) {
             Group {
@@ -83,6 +54,8 @@ struct Step1View: View {
         }
         #endif
     }
+
+    // (iPad uses system inspector; iPhone uses bottom sheet.)
 
     private var previewSection: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -105,127 +78,41 @@ struct Step1View: View {
     }
 
     private var noPreviewView: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "photo.stack")
-                .font(.system(size: 40))
-                .foregroundColor(.accentColor)
-            Text("No Preview")
-                .font(.headline)
-                .bold()
-            Text(LocalizedStringKey("No Preview Detail 1"))
-                .multilineTextAlignment(.center)
-            Text(LocalizedStringKey("No Preview Detail 2"))
-                .multilineTextAlignment(.center)
+        VStack {
+            VStack(spacing: 12) {
+                Image(systemName: "photo.stack")
+                    .font(.system(size: 40))
+                    .foregroundColor(.accentColor)
+                Text("No Preview")
+                    .font(.headline)
+                    .bold()
+                Text(LocalizedStringKey("No Preview Detail 1"))
+                    .multilineTextAlignment(.center)
+                Text(LocalizedStringKey("No Preview Detail 2"))
+                    .multilineTextAlignment(.center)
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.accentColor.opacity(0.1))
+            )
+            .frame(maxWidth: 360)
+            .padding()
+            
+//            if viewModel.showPreviewNotice {
+//                NoticeBanner(
+//                    closeAction: { viewModel.dismissPreviewNoticeOnce() },
+//                    neverShowAction: { viewModel.suppressPreviewNotice() }
+//                )
+//                .padding(.horizontal)
+//                .padding(.top, 8)
+//            }
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.accentColor.opacity(0.1))
-        )
-        .frame(maxWidth: 360)
-        .padding()
     }
 
     private var settingsSection: some View {
 #if os(iOS)
-        Form {
-            Section {
-                PhotosPicker(selection: $selectedItems, maxSelectionCount: 0, matching: .images) {
-                    Label("Add Images", systemImage: "photo.on.rectangle.angled")
-                }
-                .controlSize(.large)
-                .help("Select one or more images to merge.")
-            }
-
-            Section {
-                Stepper(value: $viewModel.mergeCount, in: 1...10) {
-                    HStack {
-                        Text("Merge Count")
-                        Spacer()
-                        Text("\(viewModel.mergeCount)")
-                    }
-                }
-                    .help("Number of images combined into each merged result.")
-                HStack {
-                    Text("Direction")
-                    Spacer()
-                    Picker("Direction", selection: $viewModel.direction) {
-                        ForEach(MergeDirection.allCases) { dir in
-                            Text(LocalizedStringKey(dir.rawValue)).tag(dir)
-                        }
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    .frame(maxWidth: 200, alignment: .trailing)
-                    .help("Vertical stacks top-to-bottom; Horizontal side-by-side.")
-                }
-            } header: { Text("Basic Settings") } footer: { Text("Choose how many images to merge and the stacking direction.") }
-
-            Section {
-                Toggle("Enable Uniform Scaling", isOn: $viewModel.enableUniformScaling)
-                HStack {
-                    Text("Uniform Dimension")
-                    Spacer()
-                    Picker("Uniform Dimension", selection: $viewModel.scaleMode) {
-                        ForEach(ScaleMode.allCases) { mode in
-                            Text(LocalizedStringKey(mode.rawValue)).tag(mode)
-                        }
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    .frame(maxWidth: 300, alignment: .trailing)
-                    .disabled(!viewModel.enableUniformScaling)
-                    .help("Scale images so widths or heights match before merging.")
-                }
-                HStack {
-                    Text("Scale Strategy")
-                    Spacer()
-                    Picker("Scale Strategy", selection: $viewModel.scaleStrategy) {
-                        ForEach(ScaleStrategy.allCases) { s in
-                            Text(LocalizedStringKey(s.rawValue)).tag(s)
-                        }
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    .frame(maxWidth: 300, alignment: .trailing)
-                    .disabled(!viewModel.enableUniformScaling)
-                    .help("Target dimension: min (shrink), max (enlarge), or average.")
-                }
-            } header: { Text("Uniform Scaling") } footer: {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Enable and configure proportional scaling to unify widths or heights.")
-                    if viewModel.enableUniformScaling {
-                        Text(LocalizedStringKey(viewModel.scaleStrategyDescriptionKey))
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
-                    }
-                }
-            }
-
-            Section {
-                Button("Swap Order") {
-                    viewModel.rotateImages()
-                }
-                .controlSize(.large)
-                .help("Rotate order within each merge group (move first image to the end).")
-            } header: { Text("Advanced Settings") } footer: { Text("Rearrange image order within each group without reselecting images.") }
-
-            // Separate group for opening the image list or guiding manual sorting in sidebar
-            Section {
-                let isSidebarVisible = (hSizeClass == .regular)
-                let buttonKey = isSidebarVisible ? "Manually Sort in Sidebar" : "Open Image List to Sort"
-                Button(LocalizedStringKey(buttonKey)) {
-                    if isSidebarVisible {
-                        // Ensure the sidebar is shown when sorting in sidebar is intended
-                        NotificationCenter.default.post(name: Notification.Name("OpenSidebar"), object: nil)
-                    } else {
-                        // Open list as a sheet for manual sorting
-                        viewModel.presentImageListSheet = true
-                    }
-                }
-                .controlSize(.large)
-            } footer: {
-                Text(LocalizedStringKey("Manual Sort Description"))
-            }
-        }
-        .formStyle(.grouped)
+        ControlsFormView(viewModel: viewModel)
 #else
         VStack(alignment: .leading) {
             Button {

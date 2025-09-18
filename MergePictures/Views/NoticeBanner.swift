@@ -41,15 +41,15 @@ struct NoticeBanner: View {
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
-//            .background(
-//                RoundedRectangle(cornerRadius: 10)
-//                    .fill(Color(red: 1.0, green: 0.9725, blue: 0.8823)) // #fff8e1
-//                    .glassEffect(.regular.tint(.orange))
-//            )
-//            .overlay(
-//                RoundedRectangle(cornerRadius: 10)
-//                    .stroke(Color(red: 0.941, green: 0.851, blue: 0.549), lineWidth: 1) // #f0d98c
-//            )
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(red: 1.0, green: 0.9725, blue: 0.8823)) // #fff8e1
+                    .glassEffect(.regular.tint(.orange))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color(red: 0.941, green: 0.851, blue: 0.549), lineWidth: 1) // #f0d98c
+            )
             .accessibilityElement(children: .combine)
             .accessibilityLabel(LocalizedStringKey("Preview Notice"))
         } else {

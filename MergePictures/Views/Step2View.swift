@@ -3,6 +3,7 @@ import SwiftUI
 struct Step2View: View {
     @ObservedObject var viewModel: AppViewModel
     @Environment(\.colorScheme) private var colorScheme
+    
     private var gridLayout: [GridItem] {
         [GridItem(.adaptive(minimum: 150 * viewModel.step2PreviewScale))]
     }
@@ -34,16 +35,6 @@ struct Step2View: View {
             }
         }
         .padding()
-        .overlay(alignment: .top) {
-            if viewModel.showPreviewNotice {
-                NoticeBanner(
-                    closeAction: { viewModel.dismissPreviewNoticeOnce() },
-                    neverShowAction: { viewModel.suppressPreviewNotice() }
-                )
-                .padding(.horizontal)
-                .padding(.top, 8)
-            }
-        }
         .onAppear {
             if viewModel.mergedImageURLs.isEmpty {
                 viewModel.batchMerge()

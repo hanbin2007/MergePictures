@@ -11,7 +11,8 @@
     .cn { color: #555; }
     .card { border: 1px solid #e3e5e8; border-radius: 10px; padding: 16px; margin: 16px 0; }
     ul { margin: 0.4em 0 0.8em 1.2em; }
-    .banner { position: sticky; top: 0; z-index: 1000; background: #fff8e1; color: #5c4600; border: 1px solid #f0d98c; border-radius: 10px; padding: 12px 16px; margin: 0 0 16px 0; box-shadow: 0 1px 0 rgba(0,0,0,0.02); }
+    /* Ensure sticky works on iPad Safari */
+    .banner { position: -webkit-sticky; position: sticky; top: 0; z-index: 1000; background: #fff8e1; color: #5c4600; border: 1px solid #f0d98c; border-radius: 10px; padding: 12px 16px; margin: 0 0 16px 0; box-shadow: 0 1px 0 rgba(0,0,0,0.02); }
     .banner b { margin-right: 4px; }
   </style>
   </head>
