@@ -10,7 +10,7 @@ struct ContentView: View {
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var showStep1Inspector: Bool = true
     @State private var showCompactControls: Bool = true
-    @State private var compactSheetDetent: PresentationDetent = .fraction(0.35)
+    @State private var compactPanelDetent: CompactControlsDetent = .fraction(0.35)
     #endif
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
     #if os(iOS)
@@ -25,12 +25,12 @@ struct ContentView: View {
         let wasShowing = showCompactControls
         showCompactControls = shouldShow
         if shouldShow && !wasShowing {
-            compactSheetDetent = .fraction(0.35)
+            compactPanelDetent = .fraction(0.35)
         }
     }
 
-    private var shouldPresentCompactControls: Bool {
-        showCompactControls && hSizeClass == .compact &&
+    private var compactControlsEligible: Bool {
+        hSizeClass == .compact &&
         (viewModel.step == .selectImages || viewModel.step == .previewAll)
     }
     #endif
@@ -85,6 +85,17 @@ struct ContentView: View {
                     )
                     .padding(.horizontal)
                     .padding(.top, 8)
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if compactControlsEligible {
+                    CompactControlsPanel(isPresented: $showCompactControls, selected: $compactPanelDetent) {
+                        NavigationStack {
+                            ControlsFormView(viewModel: viewModel)
+                                .navigationTitle("")
+                                .navigationBarTitleDisplayMode(.inline)
+                        }
+                    }
                 }
             }
         }
@@ -305,24 +316,6 @@ struct ContentView: View {
         }
         .onChange(of: hSizeClass) { _ in
             updateCompactSheetVisibility()
-        }
-        .sheet(isPresented: Binding(get: { shouldPresentCompactControls }, set: { newValue in
-            if !newValue {
-                showCompactControls = false
-            }
-        })) {
-            NavigationStack {
-                ControlsFormView(viewModel: viewModel)
-                    .navigationTitle("")
-                    .navigationBarTitleDisplayMode(.inline)
-            }
-            .presentationDetents([
-                .fraction(0.35),
-                .medium,
-                .large
-            ], selection: $compactSheetDetent)
-            .presentationDragIndicator(.visible)
-            .interactiveDismissDisabled(true)
         }
         #endif
         #if os(iOS)
