@@ -10,7 +10,7 @@ struct ContentView: View {
     @Environment(\.horizontalSizeClass) private var hSizeClass
     @State private var showStep1Inspector: Bool = true
     @State private var showCompactControls: Bool = true
-    @State private var compactSheetDetent: PresentationDetent = .fraction(0.35)
+    @State private var compactPanelDetent: CompactControlsDetent = .fraction(0.35)
     #endif
     @State private var splitViewVisibility: NavigationSplitViewVisibility = .all
     #if os(iOS)
@@ -25,13 +25,22 @@ struct ContentView: View {
         let wasShowing = showCompactControls
         showCompactControls = shouldShow
         if shouldShow && !wasShowing {
-            compactSheetDetent = .fraction(0.35)
+            compactPanelDetent = .fraction(0.35)
         }
     }
 
-    private var shouldPresentCompactControls: Bool {
-        showCompactControls && hSizeClass == .compact &&
+    private var compactControlsEligible: Bool {
+        hSizeClass == .compact &&
         (viewModel.step == .selectImages || viewModel.step == .previewAll)
+    }
+#endif
+
+#if os(iOS)
+    private var shouldShowFooterNavigation: Bool {
+        if hSizeClass == .compact && !isPadDevice {
+            return !compactControlsEligible
+        }
+        return true
     }
     #endif
 
@@ -55,14 +64,11 @@ struct ContentView: View {
             }
             // Top banner independent of scroll
             .safeAreaInset(edge: .top) {
-                if viewModel.showPreviewNotice {
-                    NoticeBanner(
-                        closeAction: { viewModel.dismissPreviewNoticeOnce() },
-                        neverShowAction: { viewModel.suppressPreviewNotice() }
-                    )
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-                }
+                PreviewNoticeHeader(
+                    isPresented: viewModel.showPreviewNotice,
+                    closeAction: { viewModel.dismissPreviewNoticeOnce() },
+                    neverShowAction: { viewModel.suppressPreviewNotice() }
+                )
             }
             // iPad (regular) Step1 inspector as system side panel
             .inspector(isPresented: Binding(get: { viewModel.step == .selectImages && showStep1Inspector }, set: { showStep1Inspector = $0 })) {
@@ -78,13 +84,25 @@ struct ContentView: View {
             }
             // Top banner independent of scroll (compact)
             .safeAreaInset(edge: .top) {
-                if viewModel.showPreviewNotice {
-                    NoticeBanner(
-                        closeAction: { viewModel.dismissPreviewNoticeOnce() },
-                        neverShowAction: { viewModel.suppressPreviewNotice() }
-                    )
-                    .padding(.horizontal)
-                    .padding(.top, 8)
+                PreviewNoticeHeader(
+                    isPresented: viewModel.showPreviewNotice,
+                    closeAction: { viewModel.dismissPreviewNoticeOnce() },
+                    neverShowAction: { viewModel.suppressPreviewNotice() }
+                )
+            }
+            .overlay(alignment: .bottom) {
+                if compactControlsEligible {
+                    CompactControlsPanel(isPresented: $showCompactControls, selected: $compactPanelDetent) {
+                        VStack(spacing: 12) {
+                            compactNavigationControls
+
+                            NavigationStack {
+                                ControlsFormView(viewModel: viewModel)
+                                    .navigationTitle("")
+                                    .navigationBarTitleDisplayMode(.inline)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -99,152 +117,22 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-            let showBack = viewModel.step != .selectImages
-            let showNext = viewModel.step != .export
-            HStack(spacing: 16) {
-                if showBack && showNext {
-                    Spacer()
-                    if #available(iOS 26.0, *) {
-                        Button {
-                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                                viewModel.step = prev
-                            }
-                        } label:{
-                            Text("Back")
-                                .frame(maxWidth: .infinity)
-                                .bold()
-                        }
-                        .buttonStyle(.glass)
-                        .controlSize(.large)
-                        .padding(.vertical)
-                        .disabled(viewModel.isExporting)
-                    } else {
-                        // Fallback on earlier versions
-                        Button {
-                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                                viewModel.step = prev
-                            }
-                        } label:{
-                            Text("Back")
-                                .frame(maxWidth: .infinity)
-                                .bold()
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.large)
-                        .padding(.vertical)
-                        .disabled(viewModel.isExporting)
-                    }
-
-                    if #available(iOS 26.0, *) {
-                        Button {
-                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                                viewModel.step = next
-                            }
-                        } label:{
-                            Text("Next")
-                                .frame(maxWidth: .infinity)
-                                .bold()
-                        }
-                        .buttonStyle(.glassProminent)
-                        .controlSize(.large)
-                        .padding(.vertical)
-                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
-                    } else {
-                        // Fallback on earlier versions
-                        Button {
-                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                                viewModel.step = next
-                            }
-                        } label:{
-                            Text("Next")
-                                .frame(maxWidth: .infinity)
-                                .bold()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-                        .padding(.vertical)
-                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
-                    }
-                    Spacer()
-                } else if showBack {
-                    if #available(iOS 26.0, *) {
-                        Button {
-                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                                viewModel.step = prev
-                            }
-                        } label:{
-                            Text("Back")
-                                .frame(maxWidth: .infinity)
-                                .bold()
-                        }
-                        .padding()
-                        .buttonStyle(.glass)
-                        .controlSize(.large)
-                        .disabled(viewModel.isExporting)
-                    } else {
-                        // Fallback on earlier versions
-                        Button {
-                            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
-                                viewModel.step = prev
-                            }
-                        } label:{
-                            Text("Back")
-                                .frame(maxWidth: .infinity)
-                                .bold()
-                        }
-                        .padding()
-                        .buttonStyle(.bordered)
-                        .controlSize(.large)
-                        .disabled(viewModel.isExporting)
-                    }
-                } else if showNext {
-                    if #available(iOS 26.0, *) {
-                        Button {
-                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                                viewModel.step = next
-                            }
-                        } label: {
-                            Text("Next")
-                                .frame(maxWidth: .infinity)
-                                .bold()
-                        }
-                        .buttonStyle(.glassProminent)
-                        .padding()
-                        .controlSize(.large)
-                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
-                    } else {
-                        // Fallback on earlier versions
-                        Button {
-                            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
-                                viewModel.step = next
-                            }
-                        } label: {
-                            Text("Next")
-                                .frame(maxWidth: .infinity)
-                                .bold()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .padding()
-                        .controlSize(.large)
-                        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
-                    }
-                }
+#if os(iOS)
+            if shouldShowFooterNavigation {
+                footerNavigationBar
             }
-            .frame(maxWidth: .infinity)
-            .frame(minHeight: 50)
-            .background(.bar)
+#else
+            footerNavigationBar
+#endif
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         #if os(macOS)
-        .overlay(alignment: .top) {
-            if viewModel.showPreviewNotice {
-                NoticeBanner(
-                    closeAction: { viewModel.dismissPreviewNoticeOnce() },
-                    neverShowAction: { viewModel.suppressPreviewNotice() }
-                )
-                .padding(.horizontal)
-                .padding(.top, 8)
-            }
+        .safeAreaInset(edge: .top) {
+            PreviewNoticeHeader(
+                isPresented: viewModel.showPreviewNotice,
+                closeAction: { viewModel.dismissPreviewNoticeOnce() },
+                neverShowAction: { viewModel.suppressPreviewNotice() }
+            )
         }
         #endif
 
@@ -305,24 +193,6 @@ struct ContentView: View {
         }
         .onChange(of: hSizeClass) { _ in
             updateCompactSheetVisibility()
-        }
-        .sheet(isPresented: Binding(get: { shouldPresentCompactControls }, set: { newValue in
-            if !newValue {
-                showCompactControls = false
-            }
-        })) {
-            NavigationStack {
-                ControlsFormView(viewModel: viewModel)
-                    .navigationTitle("")
-                    .navigationBarTitleDisplayMode(.inline)
-            }
-            .presentationDetents([
-                .fraction(0.35),
-                .medium,
-                .large
-            ], selection: $compactSheetDetent)
-            .presentationDragIndicator(.visible)
-            .interactiveDismissDisabled(true)
         }
         #endif
         #if os(iOS)
@@ -400,14 +270,122 @@ struct ContentView: View {
             .presentationDragIndicator(.visible)
             #endif
         }
+}
+
+#if os(iOS)
+    @ViewBuilder
+    private var compactNavigationControls: some View {
+        if hSizeClass == .compact && !isPadDevice {
+            let showBack = viewModel.step != .selectImages
+            let showNext = viewModel.step != .export
+
+            if showBack || showNext {
+                HStack(spacing: 12) {
+                    if showBack {
+                        backButton(fullWidth: false, padding: .init())
+                    }
+
+                    Spacer()
+
+                    if showNext {
+                        nextButton(fullWidth: false, padding: .init())
+                    }
+                }
+                .padding(.top, 4)
+            }
+        }
+    }
+#endif
+
+    @ViewBuilder
+    private var footerNavigationBar: some View {
+        let showBack = viewModel.step != .selectImages
+        let showNext = viewModel.step != .export
+
+        if showBack || showNext {
+            HStack(spacing: 16) {
+                if showBack && showNext {
+                    Spacer()
+                    backButton(fullWidth: true, padding: EdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0))
+                    nextButton(fullWidth: true, padding: EdgeInsets(top: 16, leading: 0, bottom: 16, trailing: 0))
+                    Spacer()
+                } else if showBack {
+                    backButton(fullWidth: true, padding: EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16))
+                } else if showNext {
+                    nextButton(fullWidth: true, padding: EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16))
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 50)
+            .background(.bar)
+        }
+    }
+
+    @ViewBuilder
+    private func backButton(fullWidth: Bool, padding: EdgeInsets) -> some View {
+#if os(iOS)
+        if #available(iOS 26.0, *) {
+            baseBackButton(fullWidth: fullWidth, padding: padding)
+                .buttonStyle(.glass)
+        } else {
+            baseBackButton(fullWidth: fullWidth, padding: padding)
+                .buttonStyle(.bordered)
+        }
+#else
+        baseBackButton(fullWidth: fullWidth, padding: padding)
+            .buttonStyle(.bordered)
+#endif
+    }
+
+    @ViewBuilder
+    private func nextButton(fullWidth: Bool, padding: EdgeInsets) -> some View {
+#if os(iOS)
+        if #available(iOS 26.0, *) {
+            baseNextButton(fullWidth: fullWidth, padding: padding)
+                .buttonStyle(.glassProminent)
+        } else {
+            baseNextButton(fullWidth: fullWidth, padding: padding)
+                .buttonStyle(.borderedProminent)
+        }
+#else
+        baseNextButton(fullWidth: fullWidth, padding: padding)
+            .buttonStyle(.borderedProminent)
+#endif
+    }
+
+    private func baseBackButton(fullWidth: Bool, padding: EdgeInsets) -> some View {
+        Button {
+            if let prev = Step(rawValue: viewModel.step.rawValue - 1) {
+                viewModel.step = prev
+            }
+        } label: {
+            Text("Back")
+                .frame(maxWidth: fullWidth ? .infinity : nil)
+                .bold()
+        }
+        .controlSize(.large)
+        .padding(padding)
+        .disabled(viewModel.isExporting)
+    }
+
+    private func baseNextButton(fullWidth: Bool, padding: EdgeInsets) -> some View {
+        Button {
+            if let next = Step(rawValue: viewModel.step.rawValue + 1) {
+                viewModel.step = next
+            }
+        } label: {
+            Text("Next")
+                .frame(maxWidth: fullWidth ? .infinity : nil)
+                .bold()
+        }
+        .controlSize(.large)
+        .padding(padding)
+        .disabled(viewModel.isMerging || viewModel.images.isEmpty)
     }
 
 #if os(iOS)
     private var isPadDevice: Bool {
         UIDevice.current.userInterfaceIdiom == .pad
-    }
-    private var isiOS26OrNewer: Bool {
-        if #available(iOS 26.0, *) { return true } else { return false }
     }
 #endif
 
