@@ -105,6 +105,17 @@ struct ContentView: View {
                     }
                 }
             }
+            .overlay(alignment: .bottom) {
+                if compactControlsEligible {
+                    CompactControlsPanel(isPresented: $showCompactControls, selected: $compactPanelDetent) {
+                        NavigationStack {
+                            ControlsFormView(viewModel: viewModel)
+                                .navigationTitle("")
+                                .navigationBarTitleDisplayMode(.inline)
+                        }
+                    }
+                }
+            }
         }
         #endif
     }
