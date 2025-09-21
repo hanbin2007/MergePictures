@@ -11,3 +11,8 @@ struct ImageItem: Identifiable, Equatable {
         lhs.id == rhs.id && lhs.url == rhs.url
     }
 }
+
+// The underlying PlatformImage (UIImage/NSImage) is not Sendable, but we only
+// pass these immutable wrappers across concurrency boundaries. Declare the
+// struct as unchecked Sendable so Swift 6's strict checks allow it.
+extension ImageItem: @unchecked Sendable {}

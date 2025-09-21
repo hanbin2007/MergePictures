@@ -28,7 +28,7 @@
 "Saved to Photos" = "Saved to Photos";
 "Save Failed" = "Save Failed";
 "Preview is empty" = "Preview is empty";
-"Preview need to be regenerated after rearranging images" = "Preview needs to be regenerated after rearranging images";
+"Preview needs to be regenerated when settings are modified" = "Preview needs to be regenerated when settings are modified";
 "Reload Preview" = "Reload Preview";
 "Images" = "Images";
 "Select" = "Select";

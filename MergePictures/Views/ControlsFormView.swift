@@ -9,6 +9,31 @@ struct ControlsFormView: View {
 
     var body: some View {
         Form {
+            if viewModel.step == .previewAll {
+                Section {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Thumbnail Scale")
+                            Spacer()
+                            Text("\(Int(viewModel.step2PreviewScale * 100))%")
+                                .monospacedDigit()
+                                .foregroundColor(.secondary)
+                        }
+                        Slider(value: $viewModel.step2PreviewScale, in: 0.5...2.0)
+                            .accessibilityLabel(LocalizedStringKey("Thumbnail Scale"))
+                    }
+
+                    Button {
+                        viewModel.batchMerge()
+                    } label: {
+                        Label("Reload Preview", systemImage: "arrow.clockwise")
+                    }
+                    .controlSize(.large)
+                } header: {
+                    Text("Preview Controls")
+                }
+            }
+
             Section {
                 PhotosPicker(selection: $selectedItems, maxSelectionCount: 0, matching: .images) {
                     Label("Add Images", systemImage: "photo.on.rectangle.angled")
@@ -106,7 +131,7 @@ struct ControlsFormView: View {
             }
         }
         .formStyle(.grouped)
-        .onChange(of: selectedItems) { newItems in
+        .onChange(of: selectedItems) { _, newItems in
             Task {
                 await viewModel.addImages(items: newItems)
                 selectedItems = []
@@ -115,4 +140,3 @@ struct ControlsFormView: View {
     }
 }
 #endif
-

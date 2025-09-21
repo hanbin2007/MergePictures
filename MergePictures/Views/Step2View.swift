@@ -3,38 +3,48 @@ import SwiftUI
 struct Step2View: View {
     @ObservedObject var viewModel: AppViewModel
     @Environment(\.colorScheme) private var colorScheme
+#if os(iOS)
+    @Environment(\.horizontalSizeClass) private var hSizeClass
+#endif
     
     private var gridLayout: [GridItem] {
         [GridItem(.adaptive(minimum: 150 * viewModel.step2PreviewScale))]
     }
     var body: some View {
+        VStack(spacing: 16) {
+            bannerSection
 
-        VStack {
-            if viewModel.isMerging {
-                ProgressView(value: viewModel.mergeProgress)
-                    .padding(.vertical)
-            }
-            ScrollView {
-                if viewModel.mergedImageURLs.isEmpty {
-                    reloadPrompt
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    LazyVGrid(columns: gridLayout) {
-                        ForEach(Array(viewModel.mergedImageURLs.enumerated()), id: \.offset) { pair in
-                            MergedThumbnail(
-                                url: pair.element,
-                                index: pair.offset,
-                                scale: viewModel.step2PreviewScale,
-                                colorScheme: colorScheme,
-                                tapAction: { viewModel.presentPreviewForMerged(at: pair.offset) }
-                            )
+            VStack(spacing: 12) {
+                if viewModel.isMerging {
+                    ProgressView(value: viewModel.mergeProgress)
+                        .padding(.top, 4)
+                }
+
+                ScrollView {
+                    if viewModel.mergedImageURLs.isEmpty {
+                        reloadPrompt
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        LazyVGrid(columns: gridLayout) {
+                            ForEach(Array(viewModel.mergedImageURLs.enumerated()), id: \.offset) { pair in
+                                MergedThumbnail(
+                                    url: pair.element,
+                                    index: pair.offset,
+                                    scale: viewModel.step2PreviewScale,
+                                    colorScheme: colorScheme,
+                                    tapAction: { viewModel.presentPreviewForMerged(at: pair.offset) }
+                                )
+                            }
                         }
+                        .animation(.default, value: viewModel.step2PreviewScale)
                     }
-                    .animation(.default, value: viewModel.step2PreviewScale)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.horizontal)
+        .animation(.easeInOut(duration: 0.25), value: viewModel.showPreviewNotice)
         .onAppear {
             if viewModel.mergedImageURLs.isEmpty {
                 viewModel.batchMerge()
@@ -50,7 +60,7 @@ struct Step2View: View {
             Text("Preview is empty")
                 .font(.headline)
                 .bold()
-            Text("Preview need to be regenerated after rearranging images")
+            Text("Preview needs to be regenerated when settings are modified")
                 .multilineTextAlignment(.center)
             Text(LocalizedStringKey("Reload Preview Detail"))
                 .multilineTextAlignment(.center)
@@ -71,6 +81,30 @@ struct Step2View: View {
         .padding()
     }
 }
+
+extension Step2View {
+    @ViewBuilder
+    private var bannerSection: some View {
+        if viewModel.showPreviewNotice {
+            NoticeBanner(
+                closeAction: { viewModel.dismissPreviewNoticeOnce() },
+                neverShowAction: { viewModel.suppressPreviewNotice() }
+            )
+            .padding(.top, bannerTopPadding)
+            .transition(.move(edge: .top).combined(with: .opacity))
+        }
+    }
+}
+
+#if os(iOS)
+private extension Step2View {
+    var bannerTopPadding: CGFloat { hSizeClass == .regular ? 0 : 8 }
+}
+#else
+private extension Step2View {
+    var bannerTopPadding: CGFloat { 8 }
+}
+#endif
 
 private struct MergedThumbnail: View {
     let url: URL

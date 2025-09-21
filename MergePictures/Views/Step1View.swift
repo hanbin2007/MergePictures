@@ -12,12 +12,18 @@ struct Step1View: View {
 #endif
 
     var body: some View {
-        #if os(iOS)
-        ZStack(alignment: .top) {
-            // Full-screen preview focus
-            previewSection
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+#if os(iOS)
+        VStack(spacing: 16) {
+            bannerSection
+
+            ZStack(alignment: .top) {
+                // Full-screen preview focus
+                previewSection
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         // Controls shown globally via ContentView on iPhone compact; nothing to mount here
         .overlay(alignment: .center) {
             Group {
@@ -29,14 +35,21 @@ struct Step1View: View {
             }
             .animation(.spring(response: 0.36, dampingFraction: 0.85, blendDuration: 0.1), value: viewModel.isImporting)
         }
+        .animation(.easeInOut(duration: 0.25), value: viewModel.showPreviewNotice)
         // iPhone compact bottom sheet is managed by ContentView to avoid duplicate animation across steps
-        #else
-        HStack(spacing: 0) {
-            previewSection
-            Divider()
-            settingsSection
-                .frame(width: 280)
+#else
+        VStack(spacing: 16) {
+            bannerSection
+
+            HStack(spacing: 0) {
+                previewSection
+                Divider()
+                settingsSection
+                    .frame(width: 280)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .overlay(alignment: .center) {
             Group {
                 if viewModel.isImporting {
@@ -47,12 +60,13 @@ struct Step1View: View {
             }
             .animation(.spring(response: 0.36, dampingFraction: 0.85, blendDuration: 0.1), value: viewModel.isImporting)
         }
+        .animation(.easeInOut(duration: 0.25), value: viewModel.showPreviewNotice)
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.image], allowsMultipleSelection: true) { result in
             if case let .success(urls) = result {
                 viewModel.addImages(urls: urls)
             }
         }
-        #endif
+#endif
     }
 
     // (iPad uses system inspector; iPhone uses bottom sheet.)
@@ -66,15 +80,18 @@ struct Step1View: View {
                             previewImage(for: img, in: proxy)
                         }
                     } else {
-                        noPreviewView
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        VStack(spacing: 20) {
+                            noPreviewView
+                            Spacer()
+                                .frame(maxHeight: 400)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-//        .padding(.bottom)
     }
 
     private var noPreviewView: some View {
@@ -109,6 +126,25 @@ struct Step1View: View {
 //            }
         }
     }
+
+    @ViewBuilder
+    private var bannerSection: some View {
+        if viewModel.showPreviewNotice {
+            NoticeBanner(
+                closeAction: { viewModel.dismissPreviewNoticeOnce() },
+                neverShowAction: { viewModel.suppressPreviewNotice() }
+            )
+            .padding(.horizontal)
+            .padding(.top, bannerTopPadding)
+            .transition(.move(edge: .top).combined(with: .opacity))
+        }
+    }
+
+#if os(iOS)
+    private var bannerTopPadding: CGFloat { hSizeClass == .regular ? 0 : 8 }
+#else
+    private var bannerTopPadding: CGFloat { 8 }
+#endif
 
     private var settingsSection: some View {
 #if os(iOS)

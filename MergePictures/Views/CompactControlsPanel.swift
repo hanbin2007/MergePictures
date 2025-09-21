@@ -1,5 +1,11 @@
 import SwiftUI
 
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
+
 enum CompactControlsDetent: Equatable {
     case collapsed
     case fraction(CGFloat)
@@ -7,10 +13,12 @@ enum CompactControlsDetent: Equatable {
     case large
 }
 
-struct CompactControlsPanel<Content: View>: View {
+struct CompactControlsPanel<Content: View, BottomBar: View>: View {
     @Binding var isPresented: Bool
     @Binding var selected: CompactControlsDetent
+    var bottomInset: CGFloat = 0
     let content: () -> Content
+    let bottomBar: () -> BottomBar
 
     private let collapsedHeight: CGFloat = 100
     private let presentationAnimation = Animation.spring(response: 0.32, dampingFraction: 0.88)
@@ -19,6 +27,18 @@ struct CompactControlsPanel<Content: View>: View {
     private let projectionBoost: CGFloat = 1.6
     private let directionalTrigger: CGFloat = 18
     private let detentOptions: [CompactControlsDetent] = [.collapsed, .fraction(0.35), .medium, .large]
+
+    init(isPresented: Binding<Bool>,
+         selected: Binding<CompactControlsDetent>,
+         bottomInset: CGFloat = 0,
+         @ViewBuilder content: @escaping () -> Content,
+         @ViewBuilder bottomBar: @escaping () -> BottomBar) {
+        self._isPresented = isPresented
+        self._selected = selected
+        self.bottomInset = bottomInset
+        self.content = content
+        self.bottomBar = bottomBar
+    }
 
     var body: some View {
         GeometryReader { proxy in
@@ -38,16 +58,21 @@ struct CompactControlsPanel<Content: View>: View {
     }
 
     private func panel(maxHeight: CGFloat, safeBottom: CGFloat) -> some View {
-        let expandedHeight = height(for: selected, maxHeight: maxHeight, safeBottom: safeBottom)
-        let collapsedHeight = height(for: .collapsed, maxHeight: maxHeight, safeBottom: safeBottom)
-        let baseHeight = height(for: selected, maxHeight: maxHeight, safeBottom: safeBottom)
+        let extraSpacing: CGFloat = bottomInset > 0 ? 8 : 0
+        let additionalSafe: CGFloat = bottomInset > 0 ? safeBottom : 0
+        let liftAmount = bottomInset + extraSpacing + additionalSafe
+        let adjustedMaxHeight = max(maxHeight - liftAmount, height(for: .collapsed, maxHeight: maxHeight, safeBottom: safeBottom))
+        let expandedHeight = height(for: selected, maxHeight: adjustedMaxHeight, safeBottom: safeBottom)
+        let collapsedHeight = height(for: .collapsed, maxHeight: adjustedMaxHeight, safeBottom: safeBottom)
+        let baseHeight = height(for: selected, maxHeight: adjustedMaxHeight, safeBottom: safeBottom)
 
         return PanelBody(
             height: expandedHeight,
             collapsed: collapsedHeight,
-            maxHeight: maxHeight,
+            maxHeight: adjustedMaxHeight,
             safeBottom: safeBottom,
             content: content,
+            bottomBar: bottomBar,
             dragResponsiveness: dragResponsiveness,
             snapAnimation: detentAnimation
         ) { offset in
@@ -64,8 +89,8 @@ struct CompactControlsPanel<Content: View>: View {
                 target = detentOptions[nextIndex]
             } else {
                 target = detentOptions.min { lhs, rhs in
-                    abs(height(for: lhs, maxHeight: maxHeight, safeBottom: safeBottom) - projectedHeight) <
-                    abs(height(for: rhs, maxHeight: maxHeight, safeBottom: safeBottom) - projectedHeight)
+                    abs(height(for: lhs, maxHeight: adjustedMaxHeight, safeBottom: safeBottom) - projectedHeight) <
+                    abs(height(for: rhs, maxHeight: adjustedMaxHeight, safeBottom: safeBottom) - projectedHeight)
                 } ?? selected
             }
 
@@ -73,6 +98,7 @@ struct CompactControlsPanel<Content: View>: View {
                 selected = target
             }
         }
+        .padding(.bottom, liftAmount)
         .allowsHitTesting(true)
     }
 
@@ -92,12 +118,13 @@ struct CompactControlsPanel<Content: View>: View {
     }
 }
 
-private struct PanelBody<Content: View>: View {
+private struct PanelBody<Content: View, BottomBar: View>: View {
     let height: CGFloat
     let collapsed: CGFloat
     let maxHeight: CGFloat
     let safeBottom: CGFloat
     let content: () -> Content
+    let bottomBar: () -> BottomBar
     let dragResponsiveness: CGFloat
     let snapAnimation: Animation
     var onDragEnded: (CGFloat) -> Void
@@ -105,29 +132,49 @@ private struct PanelBody<Content: View>: View {
     @State private var dragOffset: CGFloat = 0
 
     var body: some View {
-        VStack(spacing: 12) {
-            Capsule()
-                .fill(Color.secondary.opacity(0.45))
-                .frame(width: 36, height: 4)
-                .padding(.top, 10)
-                .accessibilityHidden(true)
+        VStack(spacing: 0) {
+            VStack(spacing: 12) {
+                Capsule()
+                    .fill(Color.secondary.opacity(0.45))
+                    .frame(width: 36, height: 4)
+                    .padding(.top, 10)
+                    .accessibilityHidden(true)
 
-            content()
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .padding(.bottom, contentBottomPadding)
+                content()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .padding(.bottom, contentBottomPadding)
+            }
+
+            if includesBottomBar {
+                bottomBar()
+                    .padding(.top, 8)
+                    .padding(.bottom, bottomBarBottomPadding)
+            }
         }
         .frame(height: clampedHeight, alignment: .top)
         .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(.ultraThinMaterial)
+            Group {
+                if #available(iOS 17.0, macOS 14.0, *) {
+                    UnevenRoundedRectangle(topLeadingRadius: 22, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 22)
+                        .fill(panelBackgroundColor)
+                } else {
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .fill(panelBackgroundColor)
+                }
+            }
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(.separator.opacity(0.25), lineWidth: 0.5)
+            Group {
+                if #available(iOS 17.0, macOS 14.0, *) {
+                    UnevenRoundedRectangle(topLeadingRadius: 22, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 22)
+                        .strokeBorder(.separator.opacity(0.25), lineWidth: 0.5)
+                } else {
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .strokeBorder(.separator.opacity(0.25), lineWidth: 0.5)
+                }
+            }
         )
-        .padding(.horizontal)
-        .padding(.bottom, safeBottom)
         .gesture(
             DragGesture()
                 .onChanged { value in
@@ -145,12 +192,45 @@ private struct PanelBody<Content: View>: View {
     }
 
     private var contentBottomPadding: CGFloat {
-        safeBottom > 0 ? safeBottom + 10 : 16
+        includesBottomBar ? 8 : (safeBottom > 0 ? safeBottom + 10 : 16)
+    }
+
+    private var includesBottomBar: Bool {
+        BottomBar.self != EmptyView.self
+    }
+
+    private var bottomBarBottomPadding: CGFloat {
+        safeBottom > 0 ? safeBottom + 8 : 12
     }
 
     private var clampedHeight: CGFloat {
         let proposed = height - dragOffset
         let upperBound = max(collapsed, maxHeight * 0.95)
         return max(collapsed, min(upperBound, proposed))
+    }
+
+    private var panelBackgroundColor: Color {
+#if os(iOS)
+        Color(uiColor: .systemBackground)
+#elseif os(macOS)
+        Color(nsColor: .windowBackgroundColor)
+#else
+        Color(uiColor: .systemBackground)
+#endif
+    }
+}
+
+extension CompactControlsPanel where BottomBar == EmptyView {
+    init(isPresented: Binding<Bool>,
+         selected: Binding<CompactControlsDetent>,
+         bottomInset: CGFloat = 0,
+         @ViewBuilder content: @escaping () -> Content) {
+        self.init(
+            isPresented: isPresented,
+            selected: selected,
+            bottomInset: bottomInset,
+            content: content,
+            bottomBar: { EmptyView() }
+        )
     }
 }
