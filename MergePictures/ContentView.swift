@@ -34,7 +34,18 @@ struct ContentView: View {
         hSizeClass == .compact &&
         (viewModel.step == .selectImages || viewModel.step == .previewAll)
     }
+
+    private var presentingPreviewInsideCompactList: Bool {
+        hSizeClass == .compact && viewModel.presentImageListSheet
+    }
     #endif
+
+    private var previewPresentationBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.isPreviewPresented },
+            set: { viewModel.isPreviewPresented = $0 }
+        )
+    }
 
     init(viewModel: AppViewModel = AppViewModel()) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -54,6 +65,7 @@ struct ContentView: View {
                 ImageSidebarView(viewModel: viewModel)
             } detail: {
                 detailContent
+                    .navigationSplitViewColumnWidth(min: 380, ideal: 560, max: 760)
             }
             // iPad (regular) Step1 inspector as system side panel
             .inspector(isPresented: Binding(get: { shouldPresentInspector }, set: { showInspector = $0 })) {
@@ -196,7 +208,19 @@ struct ContentView: View {
             NavigationStack {
                 ImageSidebarView(viewModel: viewModel)
                     .navigationTitle("Images")
-                    .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { viewModel.presentImageListSheet = false } } }
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { viewModel.presentImageListSheet = false }
+                        }
+                    }
+            }
+            .sheet(
+                isPresented: Binding(
+                    get: { presentingPreviewInsideCompactList ? viewModel.isPreviewPresented : false },
+                    set: { viewModel.isPreviewPresented = $0 }
+                )
+            ) {
+                previewSheetContent
             }
         }
         #endif
@@ -236,35 +260,18 @@ struct ContentView: View {
         }
         #endif
         // Global preview using system Quick Look on iOS; custom fallback on macOS
-        .sheet(isPresented: Binding(get: { viewModel.isPreviewPresented }, set: { viewModel.isPreviewPresented = $0 })) {
-            #if os(iOS)
-            NavigationStack {
-                QuickLookPreview(
-                    urls: viewModel.previewURLs,
-                    isPresented: Binding(get: { viewModel.isPreviewPresented }, set: { viewModel.isPreviewPresented = $0 }),
-                    initialIndex: viewModel.previewStartIndex
-                )
-                .navigationTitle("Preview")
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Done") { viewModel.isPreviewPresented = false }
-                    }
-                }
-            }
-            .interactiveDismissDisabled(true)
-            .presentationDragIndicator(.hidden)
-            #else
-            NavigationStack {
-                ImagePreviewer(
-                    urls: viewModel.previewURLs,
-                    isPresented: Binding(get: { viewModel.isPreviewPresented }, set: { viewModel.isPreviewPresented = $0 }),
-                    initialIndex: viewModel.previewStartIndex
-                )
-                .navigationTitle("Preview")
-                .toolbar { ToolbarItem(placement: .automatic) { Button("Done") { viewModel.isPreviewPresented = false } } }
-            }
-            .presentationDragIndicator(.visible)
-            #endif
+        .sheet(
+            isPresented: Binding(
+                get: {
+                    #if os(iOS)
+                    guard !presentingPreviewInsideCompactList else { return false }
+                    #endif
+                    return viewModel.isPreviewPresented
+                },
+                set: { viewModel.isPreviewPresented = $0 }
+            )
+        ) {
+            previewSheetContent
         }
     }
 
@@ -286,6 +293,38 @@ struct ContentView: View {
         case .export:
             return .constant(1.0)
         }
+    }
+
+    @ViewBuilder
+    private var previewSheetContent: some View {
+        #if os(iOS)
+        NavigationStack {
+            QuickLookPreview(
+                urls: viewModel.previewURLs,
+                isPresented: previewPresentationBinding,
+                initialIndex: viewModel.previewStartIndex
+            )
+            .navigationTitle("Preview")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { viewModel.isPreviewPresented = false }
+                }
+            }
+        }
+        .interactiveDismissDisabled(true)
+        .presentationDragIndicator(.hidden)
+        #else
+        NavigationStack {
+            ImagePreviewer(
+                urls: viewModel.previewURLs,
+                isPresented: previewPresentationBinding,
+                initialIndex: viewModel.previewStartIndex
+            )
+            .navigationTitle("Preview")
+            .toolbar { ToolbarItem(placement: .automatic) { Button("Done") { viewModel.isPreviewPresented = false } } }
+        }
+        .presentationDragIndicator(.visible)
+        #endif
     }
 
     private var importHUD: some View {
