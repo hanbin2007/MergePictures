@@ -24,17 +24,6 @@ struct Step1View: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        // Controls shown globally via ContentView on iPhone compact; nothing to mount here
-        .overlay(alignment: .center) {
-            Group {
-                if viewModel.isImporting {
-                    ImportProgressHUD(progress: viewModel.importProgress)
-                        .padding()
-                        .zIndex(2)
-                }
-            }
-            .animation(.spring(response: 0.36, dampingFraction: 0.85, blendDuration: 0.1), value: viewModel.isImporting)
-        }
         .animation(.easeInOut(duration: 0.25), value: viewModel.showPreviewNotice)
         // iPhone compact bottom sheet is managed by ContentView to avoid duplicate animation across steps
 #else
@@ -50,16 +39,6 @@ struct Step1View: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .overlay(alignment: .center) {
-            Group {
-                if viewModel.isImporting {
-                    ImportProgressHUD(progress: viewModel.importProgress)
-                        .padding()
-                        .zIndex(2)
-                }
-            }
-            .animation(.spring(response: 0.36, dampingFraction: 0.85, blendDuration: 0.1), value: viewModel.isImporting)
-        }
         .animation(.easeInOut(duration: 0.25), value: viewModel.showPreviewNotice)
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.image], allowsMultipleSelection: true) { result in
             if case let .success(urls) = result {

@@ -6,6 +6,8 @@ struct ControlsFormView: View {
     @ObservedObject var viewModel: AppViewModel
     @State private var selectedItems: [PhotosPickerItem] = []
     @Environment(\.horizontalSizeClass) private var hSizeClass
+    @State private var pendingThumbnailScale: CGFloat = 1.0
+    @State private var isAdjustingThumbnailScale = false
 
     var body: some View {
         Form {
@@ -15,11 +17,11 @@ struct ControlsFormView: View {
                         HStack {
                             Text("Thumbnail Scale")
                             Spacer()
-                            Text("\(Int(viewModel.step2PreviewScale * 100))%")
+                            Text("\(Int(pendingThumbnailScale * 100))%")
                                 .monospacedDigit()
                                 .foregroundColor(.secondary)
                         }
-                        Slider(value: $viewModel.step2PreviewScale, in: 0.5...2.0)
+                        Slider(value: $pendingThumbnailScale, in: 0.5...2.0, onEditingChanged: sliderEditingChanged)
                             .accessibilityLabel(LocalizedStringKey("Thumbnail Scale"))
                     }
 
@@ -131,11 +133,26 @@ struct ControlsFormView: View {
             }
         }
         .formStyle(.grouped)
+        .onAppear {
+            pendingThumbnailScale = viewModel.step2PreviewScale
+        }
+        .onChange(of: viewModel.step2PreviewScale) { _, newValue in
+            if !isAdjustingThumbnailScale {
+                pendingThumbnailScale = newValue
+            }
+        }
         .onChange(of: selectedItems) { _, newItems in
             Task {
                 await viewModel.addImages(items: newItems)
                 selectedItems = []
             }
+        }
+    }
+
+    private func sliderEditingChanged(_ editing: Bool) {
+        isAdjustingThumbnailScale = editing
+        if !editing {
+            viewModel.step2PreviewScale = pendingThumbnailScale
         }
     }
 }

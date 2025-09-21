@@ -47,7 +47,8 @@ struct ContentView: View {
         } detail: {
             detailContent
         }
-        #else
+        .overlay(alignment: .center) { importHUD }
+#else
         if hSizeClass == .regular {
             NavigationSplitView(columnVisibility: $splitViewVisibility) {
                 ImageSidebarView(viewModel: viewModel)
@@ -59,6 +60,7 @@ struct ContentView: View {
                 inspectorContent
             }
             .inspectorColumnWidth(min: 600, ideal: 1200, max: 1200)
+            .overlay(alignment: .center) { importHUD }
         } else {
             NavigationStack {
                 // Force inline title style to avoid oversized nav bar
@@ -80,6 +82,7 @@ struct ContentView: View {
                     }
                 }
             }
+            .overlay(alignment: .center) { importHUD }
             .onChange(of: compactControlsEligible) { eligible in
                 if eligible {
                     actionBarHeight = 0
@@ -283,6 +286,17 @@ struct ContentView: View {
         case .export:
             return .constant(1.0)
         }
+    }
+
+    private var importHUD: some View {
+        Group {
+            if viewModel.isImporting {
+                ImportProgressHUD(progress: viewModel.importProgress)
+                    .padding()
+                    .zIndex(100)
+            }
+        }
+        .animation(.spring(response: 0.36, dampingFraction: 0.85, blendDuration: 0.1), value: viewModel.isImporting)
     }
 
 #if os(iOS)
