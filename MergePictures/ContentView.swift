@@ -71,7 +71,6 @@ struct ContentView: View {
             .inspector(isPresented: Binding(get: { shouldPresentInspector }, set: { showInspector = $0 })) {
                 inspectorContent
             }
-            .inspectorColumnWidth(min: 600, ideal: 1200, max: 1200)
             .overlay(alignment: .center) { importHUD }
         } else {
             NavigationStack {
@@ -352,6 +351,9 @@ struct ContentView: View {
         if inspectorIsEligible {
             ControlsFormView(viewModel: viewModel)
                 .navigationTitle("Controls")
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .layoutPriority(1)
+                .inspectorColumnWidth(min: 300, ideal: 400, max: 600)
         } else {
             EmptyView()
         }

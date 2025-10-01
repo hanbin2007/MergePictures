@@ -62,7 +62,6 @@ struct ControlsFormView: View {
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())
-                    .frame(maxWidth: 200, alignment: .trailing)
                     .help("Vertical stacks top-to-bottom; Horizontal side-by-side.")
                 }
             } header: { Text("Basic Settings") } footer: { Text("Choose how many images to merge and the stacking direction.") }
@@ -78,7 +77,6 @@ struct ControlsFormView: View {
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())
-                    .frame(maxWidth: 300, alignment: .trailing)
                     .disabled(!viewModel.enableUniformScaling)
                     .help("Scale images so widths or heights match before merging.")
                 }
@@ -91,7 +89,6 @@ struct ControlsFormView: View {
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())
-                    .frame(maxWidth: 300, alignment: .trailing)
                     .disabled(!viewModel.enableUniformScaling)
                     .help("Target dimension: min (shrink), max (enlarge), or average.")
                 }
@@ -133,6 +130,8 @@ struct ControlsFormView: View {
             }
         }
         .formStyle(.grouped)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .layoutPriority(1)
         .onAppear {
             pendingThumbnailScale = viewModel.step2PreviewScale
         }
